@@ -191,6 +191,8 @@ A. Amazon Working Backwards | B. Lean Canvas PRD | C. JTBD PRD | D. 假设驱动
 
 ## 输出规范
 
+**格式铁律**：PRD 作为文档类产出，在对话中直接输出为 Markdown。不得包含 `<generative-ui-widget>`、`<style>` 等无法在 Markdown 渲染中正确显示的标签。不将 PRD 包裹在代码围栏（```` ```markdown ``` ````）中。所有可视化内容用 Markdown 原生语法（表格、列表、引用块）表达。Agent 的解释性说明放在 PRD 内容之前或之后，与 PRD 正文明确分隔。若用户要求导出为 docx/pdf 等格式，按目标格式处理。
+
 PRD 必须使用 `references/prd-template.md` 中的模板结构。核心章节：
 
 ### 必填章节（所有保真度）
