@@ -167,7 +167,7 @@ What we **have** and **have not** implemented — no overselling:
 - 23-book methodology knowledge base
 - Skill Browser (full-screen skill explorer)
 - Setup Wizard (first-run configuration guide)
-- Daily Briefing / Coaching mode / Discovery persistence
+- Coco — out-of-the-box PM AI partner (pre-built identity + customizable)
 - Windows installer (NSIS)
 - Evaluation framework (22 golden test cases)
 

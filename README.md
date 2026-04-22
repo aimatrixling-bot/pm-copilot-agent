@@ -166,7 +166,7 @@ pm-copilot-agent/
 - 23 本书方法论知识库
 - Skill Browser 全屏技能浏览器
 - Setup Wizard 首次配置引导
-- Daily Briefing / Coaching 模式 / Discovery 持久化
+- Coco — 开箱即用的 PM AI 合伙人（预填身份 + 可个性化）
 - Windows 安装包（NSIS）
 - 评估体系（22 个黄金测试用例）
 
