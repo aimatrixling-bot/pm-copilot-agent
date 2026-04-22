@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 新增"文档维护"触发清单
 - README.md / README_EN.md 全面重写（Beta 定位 + 27 Skill 表 + 诚实清单）
 - BrandSection.tsx 集成 SetupWizard（useRef + useEffect 防止重触发）
+- CLAUDE.md (pm-copilot agent) 结构性重构：
+  - Iron Law 清单合并为 10 条单一来源（消除 3 处分散定义）
+  - 完全移除 Daily Briefing 死代码（58 行，代码层面从未实现）
+  - pm-critique 路由分流条件明确化（轻量评审 vs 深度审查）
+  - Pre-flight/Post-delivery 增加任务分级（简单/标准/复杂）
+  - Entry Mode 推断规则从 5 条精简为 3 条可执行规则
+  - 新增降级策略（5 种失败场景的 fallback 行为）
+- pm-discovery SKILL.md 清理 Daily Briefing 引用
+- ADMIN_AGENT_VERSION 升级至 pm-12
 
 ## [0.1.0] - 2026-04-10
 
