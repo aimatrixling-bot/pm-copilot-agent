@@ -1,0 +1,934 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/typography';
+
+/* Class-based dark mode: `.dark` class on <html> activates dark: utilities.
+   ThemeProvider manages the class based on user preference (light/dark/system). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Cool blue-gray shadow scale — maps to Tailwind shadow-xs/sm/md/lg/xl utilities */
+@theme {
+  --shadow-*: initial;
+  --shadow-xs: 0 1px 2px rgb(30 41 59 / 0.04);
+  --shadow-sm: 0 2px 8px rgb(30 41 59 / 0.06);
+  --shadow-md: 0 8px 24px rgb(30 41 59 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(30 41 59 / 0.12);
+  --shadow-xl: 0 24px 48px rgb(30 41 59 / 0.16);
+  --shadow-2xl: 0 32px 64px -12px rgb(30 41 59 / 0.22);
+}
+
+/* Custom titlebar styles for frameless window */
+/* NOTE: Do NOT use -webkit-app-region: drag - it conflicts with Tauri's data-tauri-drag-region on macOS */
+.custom-titlebar {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* All elements in titlebar have default cursor by default */
+.custom-titlebar * {
+  cursor: default;
+}
+
+/* Buttons have pointer cursor */
+.custom-titlebar button,
+.custom-titlebar button * {
+  cursor: pointer !important;
+}
+
+/* Overlay entry animations */
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlayPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Popover drop-down animation */
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Toast slide-down animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll anchoring for smoother streaming experience */
+.scroll-anchor-auto {
+  overflow-anchor: auto;
+}
+
+.scroll-anchor {
+  overflow-anchor: auto;
+}
+
+/* Hide rewind buttons during AI streaming — controlled via data attribute on the
+   scroll container instead of per-message React prop, eliminating mass re-renders
+   of all N history messages when streaming state changes. */
+[data-streaming="true"] [data-rewind-btn] {
+  display: none;
+}
+
+/* Fade-in animation for message list after session load completes */
+@keyframes message-list-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+:root {
+  /* ========== Layout ========== */
+  --breakpoint-mobile: 768px;
+  --sidebar-min-width: 320px;
+  --header-height: 48px;
+
+  /* ========== Typography: Font Family (Cross-platform) ========== */
+  /* 英文: macOS SF Pro → Windows Segoe UI */
+  --font-sans: 'SF Pro Text', 'SF Pro Display', -apple-system,
+               'Segoe UI', BlinkMacSystemFont, sans-serif;
+  /* 中文: macOS 苹方 → Windows 微软雅黑 */
+  --font-chinese: 'PingFang SC', 'Microsoft YaHei',
+                  'Hiragino Sans GB', sans-serif;
+  /* 等宽(纯): 代码编辑器、语法高亮 */
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas',
+               'Monaco', 'Fira Code', monospace;
+  /* 等宽+中文: 代码中包含中文注释时使用 */
+  --font-mono-chinese: var(--font-mono), var(--font-chinese);
+  /* 组合使用 */
+  --font-body: var(--font-sans), var(--font-chinese);
+  --font-display: var(--font-sans), var(--font-chinese);
+  --font-code: var(--font-mono-chinese);  /* 统一代码字体入口 */
+
+  /* ========== Typography: Size ========== */
+  /* 基于 16px 正文的字号体系 */
+  --text-2xs: 10px;   /* 时间戳、极小辅助文字 */
+  --text-xs: 11px;    /* 工具调用详情、badge */
+  --text-sm: 13px;    /* 按钮、标签、次要内容 */
+  --text-base: 16px;  /* 正文主体 - AI 回答内容 */
+  --text-lg: 18px;    /* H3 标题 */
+  --text-xl: 20px;    /* H2 标题 */
+  --text-2xl: 22px;   /* H1 标题 */
+  --text-3xl: 28px;   /* 页面大标题 */
+  --text-brand: 56px; /* 品牌展示 */
+
+  /* ========== Colors: Ink (Text) — Professional blue-gray ========== */
+  --ink: #1a1f2e;
+  --ink-secondary: #2d3748;
+  --ink-muted: #64748b;
+  --ink-subtle: #94a3b8;
+  --ink-faint: #cbd5e1;
+
+  /* ========== Colors: Paper (Background) — Clean whites ========== */
+  --paper: #ffffff;
+  --paper-elevated: #f8fafc;
+  --paper-inset: #f1f5f9;
+  --hover-bg: rgba(59, 130, 246, 0.06);
+
+  /* ========== Colors: Accent — Professional blue ========== */
+  --accent: #3b82f6;
+  --accent-warm: #3b82f6;
+  --accent-warm-hover: #2563eb;
+  --accent-warm-subtle: rgba(59, 130, 246, 0.08);
+  --accent-warm-muted: rgba(59, 130, 246, 0.15);
+  --accent-cool: #0f172a;
+  --accent-cool-hover: #1e293b;
+
+  /* ========== Colors: Heartbeat ========== */
+  --heartbeat: #ef4444;
+  --heartbeat-bg: rgba(239, 68, 68, 0.10);
+  --heartbeat-border: rgba(239, 68, 68, 0.20);
+
+  /* ========== Colors: Semantic ========== */
+  --success: #22c55e;
+  --success-bg: #f0fdf4;
+  --error: #dc2626;
+  --error-bg: #fef2f2;
+  --error-hover: #b91c1c;
+  --warning: #f59e0b;
+  --warning-bg: #fffbeb;
+  --info: #3b82f6;
+  --info-bg: #eff6ff;
+
+  /* ========== Colors: Button ========== */
+  --button-primary-bg: #3b82f6;
+  --button-primary-bg-hover: #2563eb;
+  --button-primary-text: #ffffff;
+  --button-dark-bg: #1a1f2e;
+  --button-dark-bg-hover: #2d3748;
+  --button-secondary-bg: #f1f5f9;
+  --button-secondary-bg-hover: #e2e8f0;
+  --button-secondary-text: #1a1f2e;
+
+  /* ========== Colors: Border ========== */
+  --line: rgb(30 41 59 / 0.08);
+  --line-strong: rgb(30 41 59 / 0.15);
+  --line-subtle: rgb(30 41 59 / 0.05);
+
+  /* ========== Spacing ========== */
+  --space-0: 0;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ========== Border Radius ========== */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ========== Shadows (CSS var references — Tailwind @theme overrides below) ========== */
+  /* Kept for non-Tailwind CSS usage (e.g. .tool-container, .action-button) */
+  --shadow-xs: 0 1px 2px rgb(30 41 59 / 0.04);
+  --shadow-sm: 0 2px 8px rgb(30 41 59 / 0.06);
+  --shadow-md: 0 8px 24px rgb(30 41 59 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(30 41 59 / 0.12);
+  --shadow-xl: 0 24px 48px rgb(30 41 59 / 0.16);
+
+  /* ========== Focus ========== */
+  --focus-border: #1a1f2e;
+
+  /* ========== Toggle ========== */
+  --toggle-thumb: #ffffff;
+  --toggle-off-bg: rgb(30 41 59 / 0.18);
+
+  /* ========== Code Block ========== */
+  --code-bg: #1e1e1e;
+  --code-header-bg: #2d2d2d;
+  --code-text: #d4d4d4;
+  --code-line-number: #858585;
+
+  /* ========== Animation ========== */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ============================================================
+   Dark Mode — "Deep Slate" (深石板模式)
+   Activated by ThemeProvider adding .dark class to <html>
+   ============================================================ */
+.dark {
+  /* ========== Colors: Ink (Light text on dark bg) ========== */
+  --ink: #f1f5f9;
+  --ink-secondary: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --ink-subtle: #64748b;
+  --ink-faint: #475569;
+
+  /* ========== Colors: Paper (Dark backgrounds) ========== */
+  --paper: #0f172a;
+  --paper-elevated: #1e293b;
+  --paper-inset: #0c1222;
+  --hover-bg: rgba(59, 130, 246, 0.10);
+
+  /* ========== Colors: Accent ========== */
+  --accent: #60a5fa;
+  --accent-warm: #60a5fa;
+  --accent-warm-hover: #93bbfd;
+  --accent-warm-subtle: rgba(96, 165, 250, 0.10);
+  --accent-warm-muted: rgba(96, 165, 250, 0.18);
+  --accent-cool: #38bdf8;
+  --accent-cool-hover: #7dd3fc;
+
+  /* ========== Colors: Heartbeat ========== */
+  --heartbeat: #f87171;
+  --heartbeat-bg: rgba(248, 113, 113, 0.12);
+  --heartbeat-border: rgba(248, 113, 113, 0.22);
+
+  /* ========== Colors: Semantic (brighter for dark bg readability) ========== */
+  --success: #4ade80;
+  --success-bg: rgba(74, 222, 128, 0.15);
+  --error: #f87171;
+  --error-bg: rgba(248, 113, 113, 0.15);
+  --error-hover: #ef4444;
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.15);
+  --info: #60a5fa;
+  --info-bg: rgba(96, 165, 250, 0.15);
+
+  /* ========== Colors: Button ========== */
+  --button-primary-bg: #3b82f6;
+  --button-primary-bg-hover: #2563eb;
+  --button-primary-text: #ffffff;
+  --button-dark-bg: #334155;
+  --button-dark-bg-hover: #475569;
+  --button-secondary-bg: #1e293b;
+  --button-secondary-bg-hover: #334155;
+  --button-secondary-text: #f1f5f9;
+
+  /* ========== Colors: Border ========== */
+  --line: rgb(148 163 184 / 0.10);
+  --line-strong: rgb(148 163 184 / 0.18);
+  --line-subtle: rgb(148 163 184 / 0.06);
+
+  /* ========== Shadows (pure black + higher opacity for dark bg) ========== */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.15);
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.22);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.30);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.38);
+  --shadow-xl: 0 24px 48px rgb(0 0 0 / 0.45);
+
+  /* ========== Focus ========== */
+  --focus-border: var(--accent);
+
+  /* ========== Toggle ========== */
+  --toggle-thumb: #f1f5f9;
+  --toggle-off-bg: rgb(148 163 184 / 0.18);
+
+  /* ========== Code Block ========== */
+  --code-bg: #0c1222;
+  --code-header-bg: #1e293b;
+  --code-text: #e2e8f0;
+  --code-line-number: #64748b;
+
+  color-scheme: dark;
+}
+
+/* Viewport-locked app: prevent document-level scrolling entirely.
+   All scrolling is handled by inner containers (MessageList, panels, etc.). */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100vh;
+  /* Cross-platform font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Light mode body gradient (subtle blue-gray depth) */
+:root:not(.dark) body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.03) 0%, transparent 70%),
+    var(--paper);
+}
+
+/* Dark mode body gradient (subtle deep blue depth) */
+.dark body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.05) 0%, transparent 70%),
+    var(--paper);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(30 41 59 / 0.06) 0.7px, transparent 0.7px);
+  background-size: 3px 3px;
+  opacity: 0.15;
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+
+.dark body::before {
+  opacity: 0.04;
+  mix-blend-mode: screen;
+}
+
+#root {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.glass-panel {
+  border: 1px solid var(--line);
+  background: var(--paper-elevated);
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-2xl);
+}
+
+.ink-muted {
+  color: var(--ink-muted);
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.8rem;
+  color: var(--ink-muted);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tree-item:hover {
+  background: var(--paper-elevated);
+  color: var(--ink);
+}
+
+.tree-item.selected {
+  background: var(--paper-elevated);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.tree-item-label {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: inherit;
+}
+
+.tree-item-meta {
+  border: 1px solid var(--line);
+  background: var(--paper-inset);
+  border-radius: 999px;
+  padding: 0.1rem 0.35rem;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper-elevated);
+  color: var(--ink);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+  box-shadow: 0 6px 16px -12px rgb(30 41 59 / 0.25);
+}
+
+.action-button:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: inset 0 2px 6px rgb(30 41 59 / 0.12);
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Global button cursor and interaction feedback */
+button {
+  cursor: pointer;
+  /* Always include transform in transition for smooth active feedback */
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Subtle press feedback — unified scale(0.98) for all interactive elements */
+button:active:not(:disabled),
+[role="button"]:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Clickable row press feedback (file tree, list items, etc.) */
+[data-tree-row] {
+  transition-property: color, background-color, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 100ms;
+}
+
+[data-tree-row]:active {
+  transform: scale(0.98);
+  background-color: var(--paper-inset) !important;
+}
+
+/* Custom scrollbar styling - cross-platform */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-subtle) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--ink-subtle);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-muted);
+}
+
+/* Pulse animation for tab status dot (AI streaming on non-active tab) */
+@keyframes tab-dot-pulse {
+  0% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes tab-dot-pulse {
+    0%, 100% { opacity: 0; transform: scale(1); }
+  }
+}
+
+/* Shimmer animation for thinking state */
+@keyframes shimmer {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer-slide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Indeterminate progress bar animation (browser loading indicator) */
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.animate-indeterminate {
+  animation: indeterminate 1.5s ease-in-out infinite;
+}
+
+
+/* Override Tailwind's font-mono to use our CSS variable with Chinese fallback */
+.font-mono {
+  font-family: var(--font-code) !important;
+}
+
+/* Terminal-like monospace typography for tool calls */
+.tool-input {
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  font-feature-settings:
+    'liga' 1,
+    'calt' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Clean code block styling */
+pre code {
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* Tool container styling to mirror drawer cards */
+.tool-container {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--paper-elevated);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 8px 24px -20px rgb(30 41 59 / 0.20);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tool-container:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 14px 30px -24px rgb(30 41 59 / 0.25);
+}
+
+/* Create border with gaps for icons in expanded sections */
+.expanded-block-section {
+  position: relative;
+  background-image: linear-gradient(to bottom,
+      rgb(100 116 139 / 0.25) 0%,
+      rgb(100 116 139 / 0.25) 100%);
+  background-size: 1px 100%;
+  background-position: 0 0;
+  background-repeat: repeat-y;
+}
+
+/* Align tool call icons with border center and create gap */
+.expanded-block-section .flex.h-4.w-4.items-center.justify-center {
+  position: relative;
+  margin-left: -18.5px;
+  background-color: var(--paper-elevated);
+  z-index: 1;
+  padding: 3px 2px;
+  border-radius: 2px;
+}
+
+/* Align thinking badge icon with border center and create gap */
+.expanded-block-section .flex.items-center.gap-1\.5 {
+  position: relative;
+}
+
+.expanded-block-section .flex.items-center.gap-1\.5>svg.size-3:first-child {
+  position: relative;
+  margin-left: -16.5px;
+  z-index: 1;
+}
+
+/* Create background gap for thinking icon using pseudo-element on parent */
+.expanded-block-section .flex.items-center.gap-1\.5::before {
+  content: '';
+  position: absolute;
+  left: -18.5px;
+  width: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  background-color: var(--paper-elevated);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* Remove extra indent and border from expanded tool calls and thinking blocks */
+.expanded-block-section .collapsible-tool-expanded {
+  margin-left: 0 !important;
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+.expanded-block-section .thinking-expanded-content {
+  margin-left: 0 !important;
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+/* ============================================
+   Launcher Page Styles
+   ============================================ */
+
+/* Brand typography - minimalist tech style (cross-platform) */
+.brand-title {
+  font-family: var(--font-display);
+  font-weight: 250;
+  letter-spacing: 0.02em;
+  background: linear-gradient(155deg, #1e293b 30%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-slogan {
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+}
+
+/* Launcher two-column layout */
+.launcher-layout {
+  display: grid;
+  /* Left 60%, Right 40% (with min-width constraint) */
+  grid-template-columns: 60fr minmax(var(--sidebar-min-width), 40fr);
+  grid-template-areas: 'brand workspaces';
+}
+
+.launcher-brand {
+  grid-area: brand;
+  min-width: 0; /* Allow shrinking */
+}
+
+.launcher-workspaces {
+  grid-area: workspaces;
+  position: relative;
+}
+
+/* Floating divider between brand and workspaces */
+.launcher-workspaces::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 1px;
+  background: var(--line);
+}
+
+/* Responsive: stack vertically below 768px (use --breakpoint-mobile) */
+@media (max-width: 767px) {
+  .launcher-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'brand'
+      'workspaces';
+  }
+
+  .launcher-brand {
+    min-height: 200px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .launcher-workspaces::before {
+    display: none;
+  }
+}
+
+/* Settings sidebar floating divider */
+.settings-sidebar {
+  position: relative;
+}
+
+.settings-sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 1px;
+  background: var(--line);
+}
+
+/* Settings sidebar active indicator — left accent bar */
+.settings-nav-active {
+  position: relative;
+}
+
+.settings-nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+/* ============================================
+   AI Content Styles
+   ============================================ */
+
+/* AI message content - optimized for reading */
+.ai-message-content {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+.ai-message-content p + p {
+  margin-top: var(--space-4);
+}
+
+.ai-message-content li + li {
+  margin-top: var(--space-2);
+}
+
+/* User message bubble */
+.user-message {
+  background: var(--paper-inset);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Tool call card */
+.tool-call-card {
+  background: var(--paper-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  transition: border-color var(--duration-fast);
+}
+
+.tool-call-card:hover {
+  border-color: var(--line-strong);
+}
+
+/* Thinking block */
+.thinking-block {
+  border-left: 2px solid var(--line);
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* Inline code */
+.inline-code {
+  background: var(--paper-inset);
+  color: var(--ink);
+  font-family: var(--font-code);
+  font-size: 0.9em;
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+/* Permission prompt card */
+.permission-card {
+  background: var(--warning-bg);
+  border: 1px solid rgb(217 119 6 / 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* Button/Card/Badge CSS classes removed in Design Polish v2.0 — all styling is inline via Tailwind */
+
+/* ============================================
+   Text Selection Isolation
+   ============================================ */
+
+/*
+ * Problem: Double-clicking text in chat messages causes selection to bleed
+ * into surrounding UI elements (buttons, labels, etc.)
+ *
+ * Solution: Use CSS user-select to create selection boundaries:
+ * - Containers/buttons: user-select: none (prevents selection spread)
+ * - Text content: user-select: text (allows normal selection)
+ *
+ * CSS inheritance: Children inherit user-select from parents, so we only
+ * need to set boundaries at the right levels.
+ */
+
+/* Pre-formatted text blocks are always selectable */
+pre {
+  user-select: text;
+}
+
+/* Code elements (inline and block) are selectable */
+code {
+  user-select: text;
+}
+
+/* Markdown rendered content is selectable */
+.prose,
+.prose * {
+  user-select: text;
+}
+
+
+/* ── Toolbar responsive: hide text labels when container is narrow ── */
+@container (max-width: 480px) {
+  .toolbar-menus .toolbar-label {
+    display: none;
+  }
+}
+
+/* ── Introduction overlay — immersive welcome content for empty sessions ── */
+/* Guide-layer palette: one step back from conversation content (--ink) */
+.introduction-content {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
+
+.introduction-content h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.introduction-content h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+.introduction-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+/* Blockquotes styled as warm-accent prompt examples */
+.introduction-content blockquote {
+  border-left: 3px solid var(--accent-warm);
+  background: var(--accent-warm-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 12px 16px;
+  color: var(--ink-secondary);
+  font-style: normal;
+}

@@ -1,0 +1,3 @@
+/* Chinese (Simplified) localization — enables macOS to use Chinese for native UI */
+CFBundleDisplayName = "PM Copilot";
+CFBundleName = "PM Copilot";

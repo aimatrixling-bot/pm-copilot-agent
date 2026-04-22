@@ -1,0 +1,52 @@
+[package]
+name = "pm-copilot"
+version = "0.2.0"
+description = "PM Copilot - Your AI PM Partner"
+authors = ["AIMatrix"]
+license = "Apache-2.0"
+repository = "https://github.com/aimatrixling-bot/pm-copilot-agent"
+homepage = "https://pm-copilot.dev"
+edition = "2021"
+rust-version = "1.77.2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.3", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.9.6", features = ["tray-icon", "devtools", "image-png", "unstable"] }
+tauri-plugin-log = "2"
+tauri-plugin-fs = "2.4.5"
+tauri-plugin-dialog = "2.6.0"
+which = "8.0.0"
+libc = "0.2.180"
+tauri-plugin-localhost = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+reqwest = { version = "0.13.1", features = ["stream", "json", "blocking", "multipart", "socks"] }
+futures-util = "0.3.31"
+tokio = { version = "1.49.0", features = ["rt", "sync", "time", "macros"] }
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+futures = "0.3"
+base64 = "0.22"
+dirs = "6.0"
+uuid = { version = "1.11", features = ["v4"] }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+prost = "0.13"
+pulldown-cmark = "0.12"
+axum = { version = "0.8", default-features = false, features = ["json", "tokio", "query", "http1"] }
+cron = "0.15"
+portable-pty = "0.8"

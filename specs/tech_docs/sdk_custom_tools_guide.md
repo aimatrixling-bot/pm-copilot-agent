@@ -1,0 +1,570 @@
+# Claude Agent SDK Custom Tools Guide
+
+> 技术文档：如何在 PM Copilot 中使用 Claude Agent SDK 创建自定义 MCP 工具
+
+## 概述
+
+Claude Agent SDK 提供了 `createSdkMcpServer` 和 `tool` 函数，允许开发者创建内置的 MCP（Model Context Protocol）服务器，为 AI Agent 提供自定义工具能力。与外部 MCP 服务器不同，这些工具直接在应用进程内运行，无需启动额外的子进程。
+
+## 当前工具清单
+
+项目中共有 3 个自定义 SDK 工具，分别服务于定时任务、IM 定时调度和 IM 媒体发送场景。
+
+| MCP Server | Tool Name | 完整调用名 | 文件 | 注册条件 |
+|------------|-----------|-----------|------|---------|
+| `cron-tools` | `exit_cron_task` | `mcp__cron-tools__exit_cron_task` | `src/server/tools/cron-tools.ts` | 定时任务执行上下文 (`cronContext.taskId`) |
+| `im-cron` | `cron` | `mcp__im-cron__cron` | `src/server/tools/im-cron-tool.ts` | IM Bot 上下文 + `PM_COPILOT_MANAGEMENT_PORT` |
+| `im-media` | `send_media` | `mcp__im-media__send_media` | `src/server/tools/im-media-tool.ts` | IM Bot 上下文 + `PM_COPILOT_MANAGEMENT_PORT` |
+
+### 工具注册位置
+
+所有工具在 `src/server/agent-session.ts` 的 `buildSdkMcpServers()` 函数中按条件注册，并在 `startStreamingSession()` 创建 `query()` 时传入 SDK：
+
+```typescript
+function buildSdkMcpServers() {
+  const result = {};
+
+  // 1. Cron 任务执行时注册
+  const cronContext = getCronTaskContext();
+  if (cronContext.taskId) {
+    result['cron-tools'] = cronToolsServer;
+  }
+
+  // 2. IM Bot 上下文 + Management API 可用时注册
+  const imCronCtx = getImCronContext();
+  if (imCronCtx && process.env.PM_COPILOT_MANAGEMENT_PORT) {
+    result['im-cron'] = imCronToolServer;
+  }
+
+  // 3. IM Bot 上下文 + Management API 可用时注册
+  const imMediaCtx = getImMediaContext();
+  if (imMediaCtx && process.env.PM_COPILOT_MANAGEMENT_PORT) {
+    result['im-media'] = imMediaToolServer;
+  }
+
+  // + 用户配置的外部 MCP 服务器...
+  return result;
+}
+```
+
+---
+
+## Tool 1: exit_cron_task
+
+> 允许 AI 在定时任务执行期间主动结束任务。
+
+### 基本信息
+
+| 属性 | 值 |
+|------|---|
+| **Server** | `cron-tools` |
+| **Tool Name** | `exit_cron_task` |
+| **完整调用名** | `mcp__cron-tools__exit_cron_task` |
+| **文件** | `src/server/tools/cron-tools.ts` |
+| **可用场景** | 仅在定时任务执行期间，且任务创建者启用了"允许 AI 退出" |
+
+### AI 看到的 Description
+
+```
+End the current scheduled task. Call this tool when:
+1. The task's goal has been fully achieved and no further executions are needed
+2. You determine that continuing the task would be pointless or counterproductive
+3. An unrecoverable error makes the task impossible to complete
+
+The reason you provide will be displayed to the user in a notification.
+
+IMPORTANT: This tool can only be used during scheduled task execution, and only if the task creator
+has enabled "Allow AI to exit".
+```
+
+### 参数 Schema
+
+| 参数 | 类型 | 必填 | 约束 | 描述 |
+|------|------|------|------|------|
+| `reason` | `string` | 是 | `min(1).max(500)` | A clear explanation of why the task should end. This will be shown to the user. |
+
+### 上下文管理
+
+使用 `Map<sessionId, CronTaskContext>` 管理，支持多任务并发隔离：
+
+```typescript
+setCronTaskContext(taskId, canExit, sessionId?)  // 任务执行前设置
+clearCronTaskContext(sessionId?)                  // 任务执行后清理（handleMessageComplete 中自动调用）
+```
+
+### 执行流程
+
+```
+AI 调用 exit_cron_task(reason)
+  → 验证 cronContext.taskId 存在
+  → 验证 cronContext.canExit = true
+  → broadcast('cron:task-exit-requested', { taskId, reason })
+  → 前端接收事件 → 通过 Tauri IPC 停止定时任务
+```
+
+---
+
+## Tool 2: cron
+
+> IM Bot 中的定时任务管理工具，支持创建、列表、更新、删除、手动触发等操作。
+
+### 基本信息
+
+| 属性 | 值 |
+|------|---|
+| **Server** | `im-cron` |
+| **Tool Name** | `cron` |
+| **完整调用名** | `mcp__im-cron__cron` |
+| **文件** | `src/server/tools/im-cron-tool.ts` |
+| **可用场景** | IM Bot 会话中（Telegram / 飞书） |
+
+### AI 看到的 Description
+
+```
+Create, list, update, remove, or manually trigger scheduled tasks.
+
+Use this tool when the user wants to:
+- Set a reminder ("remind me in 30 minutes")
+- Create a recurring check ("check email every hour")
+- Schedule a one-time task ("at 3pm, send me the weather")
+- List/update/delete existing scheduled tasks
+- View execution history of a task ("runs")
+- Check overall task statistics ("status")
+- Manually trigger a heartbeat check ("wake")
+
+Schedules can be:
+- "at": One-shot at a specific ISO-8601 datetime
+- "every": Recurring at fixed intervals (minimum 5 minutes)
+- "cron": Standard cron expression with optional timezone
+
+The task runs independently in a new AI session. Results are delivered to this chat.
+```
+
+### 参数 Schema
+
+| 参数 | 类型 | 必填 | 描述 |
+|------|------|------|------|
+| `action` | `enum` | 是 | `'list' \| 'add' \| 'update' \| 'remove' \| 'run' \| 'runs' \| 'status' \| 'wake'` — Action to perform |
+| `job` | `object` | `add` 时必填 | 任务定义对象（见下方子字段） |
+| `job.name` | `string` | 否 | Human-readable task name |
+| `job.schedule` | `discriminatedUnion` | 是 | 调度类型，三选一（见下方 Schedule 定义） |
+| `job.message` | `string` | 是 | The prompt/instruction for the AI to execute |
+| `job.sessionTarget` | `enum` | 否 | `'new_session' \| 'single_session'` — Whether to create a new session each time (default) or reuse one |
+| `taskId` | `string` | `update/remove/run/runs` 时必填 | Task ID |
+| `patch` | `object` | `update` 时必填 | Fields to update. Use top-level keys, NOT nested inside "job". |
+| `patch.name` | `string` | 否 | New task name |
+| `patch.message` | `string` | 否 | New prompt/instruction text |
+| `patch.schedule` | `schedule` | 否 | New schedule |
+| `patch.intervalMinutes` | `number` | 否 | `min(5)` — New interval in minutes |
+| `limit` | `number` | 否 | Max records to return (for "runs", default 20, max 100) |
+| `text` | `string` | 否 | Optional text to inject as system event (for "wake") |
+
+**Schedule 类型**（`discriminatedUnion('kind')`）：
+
+| kind | 字段 | 示例 |
+|------|------|------|
+| `at` | `at: string` (ISO-8601) | `"2024-12-01T14:30:00+08:00"` |
+| `every` | `minutes: number` (min 5) | `30` |
+| `cron` | `expr: string`, `tz?: string` | `"0 9 * * *"`, `"Asia/Shanghai"` |
+
+### 上下文管理
+
+```typescript
+setImCronContext({ botId, chatId, platform, workspacePath, model?, permissionMode?, providerEnv? })
+// 每次 IM 消息到达时在 index.ts 的 /api/im/chat handler 中设置
+```
+
+### 执行流程
+
+```
+AI 调用 cron(action, ...)
+  → Bun handler (im-cron-tool.ts)
+  → fetch http://127.0.0.1:{MANAGEMENT_PORT}/api/cron/{action}
+  → Rust Management API handler (management_api.rs)
+  → CronTaskManager 操作
+  → 返回结果给 AI
+```
+
+---
+
+## Tool 3: send_media
+
+> IM Bot 中的媒体发送工具，AI 主动调用以向当前聊天发送文件、图片等。
+
+### 基本信息
+
+| 属性 | 值 |
+|------|---|
+| **Server** | `im-media` |
+| **Tool Name** | `send_media` |
+| **完整调用名** | `mcp__im-media__send_media` |
+| **文件** | `src/server/tools/im-media-tool.ts` |
+| **可用场景** | IM Bot 会话中（Telegram / 飞书） |
+
+### AI 看到的 Description
+
+```
+Send a file (image, document, audio, video, archive) to the current IM chat.
+
+Use this tool when the user asks you to:
+- Send a file, image, screenshot, or document to the chat
+- Share a generated file (CSV, PDF, chart image, etc.)
+- Upload and deliver media content
+
+The file must exist on disk. Write it first with file tools, then call send_media.
+
+Supported formats:
+- Images: jpg, jpeg, png, gif, webp, bmp, svg (sent as native photo, max 10 MB)
+- Documents: pdf, doc/docx, xls/xlsx, ppt/pptx, csv, json, xml, html, txt
+- Media: mp4, mp3, ogg, wav, avi, mov, mkv
+- Archives: zip, rar, 7z, tar, gz
+- Files over 10 MB (images) or 50 MB (other) will be rejected.
+
+Do NOT use this tool for intermediate work files — only for files the user explicitly wants to receive.
+```
+
+### 参数 Schema
+
+| 参数 | 类型 | 必填 | 描述 |
+|------|------|------|------|
+| `file_path` | `string` | 是 | Absolute path to the file on disk |
+| `caption` | `string` | 否 | Optional caption/description to send with the file |
+
+### 上下文管理
+
+```typescript
+setImMediaContext({ botId, chatId, platform })
+// 每次 IM 消息到达时在 index.ts 的 /api/im/chat handler 中设置（紧随 setImCronContext 之后）
+```
+
+### 执行流程
+
+```
+AI 调用 send_media(file_path, caption?)
+  → Bun handler (im-media-tool.ts)
+  → POST http://127.0.0.1:{MANAGEMENT_PORT}/api/im/send-media
+  → Rust handler (management_api.rs)
+    → get adapter from ManagedImBots[botId]
+    → tokio::fs::read(file_path)
+    → MediaType::from_extension(ext) 判断类型
+    → Image: adapter.send_photo() (max 10 MB)
+    → File: adapter.send_file() (max 50 MB)
+    → NonMedia: 返回错误
+  → HTTP 200 { ok, fileName, fileSize }
+  → AI 收到工具执行结果，告知用户发送成功/失败
+```
+
+### 文件类型映射
+
+| MediaType | 扩展名 | 大小限制 | 发送方式 |
+|-----------|--------|---------|---------|
+| `Image` | jpg, jpeg, png, gif, webp, bmp, svg | 10 MB | `adapter.send_photo()` — 平台原生图片 |
+| `File` | pdf, doc/docx, xls/xlsx, ppt/pptx, mp4, mp3, ogg, wav, avi, mov, mkv, zip, rar, 7z, tar, gz, csv, json, xml, html, txt | 50 MB | `adapter.send_file()` — 平台原生文件 |
+| `NonMedia` | 其他（如 .py, .rs, .ts 等代码文件） | — | 拒绝发送，返回错误 |
+
+---
+
+## 核心 API
+
+### 1. createSdkMcpServer
+
+创建一个内置的 MCP 服务器实例。
+
+```typescript
+import { createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
+
+const myServer = createSdkMcpServer({
+  name: 'my-tools',          // 服务器名称（用于工具命名）
+  version: '1.0.0',          // 版本号
+  tools: [                   // 工具定义数组
+    // ... tool() 定义
+  ]
+});
+```
+
+### 2. tool() 函数
+
+定义单个工具的 helper 函数，提供类型安全的参数验证。
+
+```typescript
+import { z } from 'zod/v4';  // 必须使用 zod/v4
+
+tool(
+  'tool_name',               // 工具名称（snake_case）
+  'Tool description',        // 工具描述（告诉 AI 何时使用）
+  {                          // Zod schema 定义输入参数
+    param1: z.string().describe('参数说明'),
+    param2: z.number().optional()
+  },
+  async (args) => {          // 工具处理函数
+    // args 的类型由 schema 推断
+    return {
+      content: [{
+        type: 'text',
+        text: '工具执行结果'
+      }]
+    };
+  }
+)
+```
+
+## 工具返回格式
+
+工具处理函数必须返回符合 MCP `CallToolResult` 格式的对象：
+
+```typescript
+type CallToolResult = {
+  content: Array<
+    | { type: 'text'; text: string }
+    | { type: 'image'; data: string; mimeType: string }
+  >;
+  isError?: boolean;  // 可选：标记为错误响应
+};
+```
+
+### 成功响应示例
+
+```typescript
+return {
+  content: [{
+    type: 'text',
+    text: '操作成功完成'
+  }]
+};
+```
+
+### 错误响应示例
+
+```typescript
+return {
+  content: [{
+    type: 'text',
+    text: 'Error: 操作失败的原因'
+  }],
+  isError: true
+};
+```
+
+## 工具命名约定
+
+当工具注册到 SDK 后，其完整名称遵循以下格式：
+
+```
+mcp__{server-name}__{tool-name}
+```
+
+例如：
+- 服务器名：`cron-tools`，工具名：`exit_cron_task` → `mcp__cron-tools__exit_cron_task`
+- 服务器名：`im-cron`，工具名：`cron` → `mcp__im-cron__cron`
+- 服务器名：`im-media`，工具名：`send_media` → `mcp__im-media__send_media`
+
+这个命名格式用于：
+- `allowedTools` 配置
+- `canUseTool` 回调中的工具名判断
+- 日志和调试
+
+## 集成到 Agent Session
+
+### 1. 创建工具服务器文件
+
+在 `src/server/tools/` 目录下创建工具定义文件：
+
+```typescript
+// src/server/tools/my-tools.ts
+import { createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
+import { z } from 'zod/v4';
+
+export const myToolsServer = createSdkMcpServer({
+  name: 'my-tools',
+  version: '1.0.0',
+  tools: [
+    tool(
+      'my_action',
+      '执行自定义操作',
+      { input: z.string() },
+      async (args) => {
+        // 实现逻辑
+        return { content: [{ type: 'text', text: `处理: ${args.input}` }] };
+      }
+    )
+  ]
+});
+```
+
+### 2. 在 agent-session.ts 中注册
+
+```typescript
+// agent-session.ts
+import { myToolsServer } from './tools/my-tools';
+
+function buildSdkMcpServers(): Record<string, SdkMcpServerConfig | typeof myToolsServer> {
+  const result: Record<string, SdkMcpServerConfig | typeof myToolsServer> = {};
+
+  // 条件性添加工具服务器
+  if (shouldEnableMyTools) {
+    result['my-tools'] = myToolsServer;
+  }
+
+  // 其他 MCP 服务器配置...
+
+  return result;
+}
+```
+
+### 3. 传递给 query() 函数
+
+```typescript
+querySession = query({
+  prompt: messageGenerator(),
+  options: {
+    mcpServers: buildSdkMcpServers(),
+    // 其他选项...
+  }
+});
+```
+
+## 上下文管理模式
+
+三个工具都使用**模块级变量 + setter/getter** 模式管理运行时上下文：
+
+```typescript
+// 模块级状态
+let context: SomeContext | null = null;
+
+export function setContext(ctx: SomeContext): void { context = ctx; }
+export function getContext(): SomeContext | null { return context; }
+export function clearContext(): void { context = null; }
+```
+
+**上下文设置时机**：
+- `exit_cron_task`：定时任务执行前由 `agent-session.ts` 调用 `setCronTaskContext()`，执行后 `handleMessageComplete()` 自动调用 `clearCronTaskContext()`
+- `cron` 和 `send_media`：每次 IM 消息到达时在 `index.ts` 的 `/api/im/chat` handler 中设置（`setImCronContext()` 和 `setImMediaContext()`）
+
+**注意**：IM 工具的上下文是在消息到达时覆写的模块级单例。在多群聊并发场景下存在理论上的竞态风险（与 im-cron 相同的已知模式）。
+
+## 工具权限控制
+
+### 使用 canUseTool 回调
+
+可以通过 `canUseTool` 回调精细控制工具权限：
+
+```typescript
+canUseTool: async (toolName, input, options) => {
+  // 检查是否是 MCP 工具
+  if (toolName.startsWith('mcp__')) {
+    // 提取服务器名和工具名
+    const parts = toolName.split('__');
+    const serverName = parts[1];
+    const actualToolName = parts[2];
+
+    // 自定义权限逻辑
+    if (serverName === 'my-tools' && !isFeatureEnabled) {
+      return { behavior: 'deny', message: '功能未启用' };
+    }
+  }
+
+  return { behavior: 'allow', updatedInput: input };
+}
+```
+
+### 使用 allowedTools 配置
+
+在 query options 中指定允许的工具：
+
+```typescript
+query({
+  options: {
+    allowedTools: [
+      'mcp__cron-tools__exit_cron_task',  // 允许特定工具
+      'mcp__my-tools__*',                  // 允许服务器下所有工具
+    ]
+  }
+});
+```
+
+## 最佳实践
+
+### 1. 工具描述要清晰
+
+工具描述是 AI 决定是否使用该工具的关键信息：
+
+```typescript
+tool(
+  'my_tool',
+  `简明扼要的功能描述。
+
+何时使用此工具：
+1. 场景一
+2. 场景二
+
+注意事项：
+- 限制条件
+- 前置要求`,
+  // ...
+)
+```
+
+### 2. 参数验证要严格
+
+使用 Zod 的验证能力确保输入合法：
+
+```typescript
+{
+  url: z.string().url().describe('必须是有效的 URL'),
+  count: z.number().int().min(1).max(100),
+  mode: z.enum(['fast', 'slow']).default('fast')
+}
+```
+
+### 3. 错误处理要友好
+
+```typescript
+async (args) => {
+  try {
+    const result = await doSomething(args);
+    return { content: [{ type: 'text', text: result }] };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    return {
+      content: [{ type: 'text', text: `操作失败: ${message}` }],
+      isError: true
+    };
+  }
+}
+```
+
+### 4. 状态管理要安全
+
+如果工具需要访问外部状态，使用模块级变量或注入依赖：
+
+```typescript
+// 模块级状态
+let state: SomeState | null = null;
+
+export function setState(newState: SomeState) {
+  state = newState;
+}
+
+// 工具内使用
+async (args) => {
+  if (!state) {
+    return { content: [{ type: 'text', text: 'Error: 状态未初始化' }], isError: true };
+  }
+  // 使用 state...
+}
+```
+
+## 调试技巧
+
+1. **查看工具注册日志**：`buildSdkMcpServers` 会输出 `[agent] Added xxx MCP server` 日志
+2. **检查工具调用**：在 `canUseTool` 回调中记录工具调用
+3. **验证参数**：在工具处理函数开头记录收到的参数
+4. **SSE 事件跟踪**：监听 `chat:tool-use` 事件查看工具调用详情
+5. **IM 工具调试**：查看 `~/.pm-copilot/logs/unified-{today}.log`，搜索 `[im-cron]` `[im-media]` `[cron-tools]`
+
+## 相关文档
+
+- [Claude Agent SDK 官方文档](https://platform.claude.com/docs/en/agent-sdk/custom-tools)
+- [MCP 协议规范](https://modelcontextprotocol.io)
+- [Zod v4 文档](https://zod.dev)
+- [代理配置](./proxy_config.md)

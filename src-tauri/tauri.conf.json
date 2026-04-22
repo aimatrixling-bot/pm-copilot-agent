@@ -1,0 +1,133 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "PM Copilot",
+  "version": "0.2.0",
+  "identifier": "com.ai-matrix.site",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev:web",
+    "beforeBuildCommand": "npm run build:web"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "PM Copilot",
+        "label": "main",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "hiddenTitle": true,
+        "visible": false,
+        "titleBarStyle": "Overlay",
+        "trafficLightPosition": {
+          "x": 14,
+          "y": 20
+        }
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' ipc: tauri: asset: http://ipc.localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: tauri: asset: http://ipc.localhost http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://download.pm-copilot.dev; fetch-src 'self' ipc: tauri: asset: http://ipc.localhost https://download.pm-copilot.dev; img-src 'self' data: blob: asset: https://asset.localhost https://download.pm-copilot.dev https:; media-src 'self' blob: asset: http://asset.localhost https://asset.localhost;",
+      "dangerousDisableAssetCspModification": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "dmg",
+      "app",
+      "nsis"
+    ],
+    "createUpdaterArtifacts": "v1Compatible",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "../src-tauri/resources/server-dist.js": "server-dist.js",
+      "../src-tauri/resources/plugin-bridge-dist.js": "plugin-bridge-dist.js",
+      "../src/server/plugin-bridge/sdk-shim": "plugin-bridge-sdk-shim",
+      "../src-tauri/resources/claude-agent-sdk": "claude-agent-sdk",
+      "../src-tauri/resources/agent-browser-cli": "agent-browser-cli",
+      "../src-tauri/resources/nodejs": "nodejs",
+      "../src/shared": "shared",
+      "../bundled-skills": "bundled-skills",
+      "../bundled-agents": "bundled-agents",
+      "../src/cli": "cli",
+      "../mino": "mino",
+      "../bundled-templates/prd-writer": "prd-writer",
+      "../bundled-templates/discovery-lab": "discovery-lab",
+      "../bundled-templates/strategy-room": "strategy-room",
+      "../bundled-templates/launch-pad": "launch-pad",
+      "../bundled-templates/retro-board": "retro-board",
+      "infoplist/en.lproj/InfoPlist.strings": "en.lproj/InfoPlist.strings",
+      "infoplist/zh-Hans.lproj/InfoPlist.strings": "zh-Hans.lproj/InfoPlist.strings"
+    },
+    "externalBin": [
+      "binaries/bun"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "entitlements": "Entitlements.plist",
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null,
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 170
+        },
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        }
+      }
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "timestampUrl": null,
+      "allowDowngrades": true,
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "template": "nsis/installer.nsi",
+        "installerIcon": "icons/icon.ico",
+        "headerImage": null,
+        "sidebarImage": null,
+        "installMode": "currentUser",
+        "languages": [
+          "SimpChinese",
+          "English"
+        ],
+        "displayLanguageSelector": false,
+        "customLanguageFiles": {
+          "SimpChinese": "nsis/languages/SimpChinese.nsh",
+          "English": "nsis/languages/English.nsh"
+        }
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY3RkQ5QjIzMTE4RTgyRTkKUldUcGdvNFJJNXY5OTB3T2pnUzVUbjFrV203Zk5ZTDg0NVJRdGI0UVRranJzTUsvM0hGcmFlc0IK",
+      "endpoints": [
+        "https://download.pm-copilot.dev/update/{{target}}.json"
+      ]
+    }
+  }
+}

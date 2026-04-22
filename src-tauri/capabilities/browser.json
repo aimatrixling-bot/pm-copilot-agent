@@ -1,0 +1,9 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "browser-isolation",
+  "description": "Browser webviews have no Tauri API permissions (sandboxed)",
+  "webviews": [
+    "browser-*"
+  ],
+  "permissions": []
+}

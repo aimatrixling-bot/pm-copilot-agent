@@ -1,0 +1,14 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "bundle": {
+    "resources": {
+      "../src-tauri/resources/vcruntime140.dll": "vcruntime140.dll",
+      "../src-tauri/resources/vcruntime140_1.dll": "vcruntime140_1.dll"
+    },
+    "windows": {
+      "nsis": {
+        "installerHooks": "nsis/hooks.nsh"
+      }
+    }
+  }
+}

@@ -1,0 +1,322 @@
+/**
+ * WorkspaceConfigPanel - Full-screen configuration overlay for workspace
+ * Two tabs: 「系统提示词」(CLAUDE.md + rules) and 「技能 Skills」(skills + commands + agents)
+ */
+import { X, SlidersHorizontal, ChevronLeft } from 'lucide-react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+
+import { useCloseLayer } from '@/hooks/useCloseLayer';
+import OverlayBackdrop from '@/components/OverlayBackdrop';
+
+import { CUSTOM_EVENTS } from '../../shared/constants';
+import { useToast } from '@/components/Toast';
+import SystemPromptsPanel from './SystemPromptsPanel';
+import type { SystemPromptsPanelRef } from './SystemPromptsPanel';
+import SkillsCommandsList from './SkillsCommandsList';
+import SkillDetailPanel from './SkillDetailPanel';
+import type { SkillDetailPanelRef } from './SkillDetailPanel';
+import CommandDetailPanel from './CommandDetailPanel';
+import type { CommandDetailPanelRef } from './CommandDetailPanel';
+import WorkspaceAgentsList from './WorkspaceAgentsList';
+import AgentDetailPanel from './AgentDetailPanel';
+import type { AgentDetailPanelRef } from './AgentDetailPanel';
+import IntroductionPanel from './IntroductionPanel';
+import type { IntroductionPanelRef } from './IntroductionPanel';
+import { WorkspaceGeneralTab } from './AgentSettings';
+
+interface WorkspaceConfigPanelProps {
+    agentDir: string;
+    onClose: () => void;
+    /** External refresh key from parent - when changed, triggers list refresh */
+    refreshKey?: number;
+    /** Initial tab to show when opening */
+    initialTab?: Tab;
+}
+
+export type Tab = 'general' | 'system-prompts' | 'introduction' | 'skills' | 'agent';
+type DetailView =
+    | { type: 'none' }
+    | { type: 'skill'; name: string; scope: 'user' | 'project'; isNewSkill?: boolean }
+    | { type: 'command'; name: string; scope: 'user' | 'project' }
+    | { type: 'agent'; name: string; scope: 'user' | 'project'; isNewAgent?: boolean };
+
+const TAB_ITEMS: { key: Tab; label: string }[] = [
+    { key: 'general', label: '通用' },
+    { key: 'system-prompts', label: '系统提示词' },
+    { key: 'introduction', label: '使用指南' },
+    { key: 'skills', label: '技能 Skills' },
+];
+
+export default function WorkspaceConfigPanel({ agentDir, onClose, refreshKey: externalRefreshKey = 0, initialTab }: WorkspaceConfigPanelProps) {
+    useCloseLayer(() => { onClose(); return true; }, 200);
+    const toast = useToast();
+    // Stabilize toast reference to avoid unnecessary effect re-runs
+    const toastRef = useRef(toast);
+
+    // Update ref in useEffect to comply with React rules
+    useEffect(() => {
+        toastRef.current = toast;
+    }, [toast]);
+
+    // Map legacy 'agent' tab to 'general' for backward compat (Settings page passes 'agent')
+    const resolvedInitialTab: Tab = initialTab === 'agent' ? 'general' : (initialTab ?? 'general');
+    const [activeTab, setActiveTab] = useState<Tab>(resolvedInitialTab);
+    const [detailView, setDetailView] = useState<DetailView>({ type: 'none' });
+    const [internalRefreshKey, setInternalRefreshKey] = useState(0);
+
+    // Combine external and internal refresh keys
+    const refreshKey = externalRefreshKey + internalRefreshKey;
+
+    // Refs for checking editing state
+    const systemPromptsRef = useRef<SystemPromptsPanelRef>(null);
+    const introductionRef = useRef<IntroductionPanelRef>(null);
+    const skillDetailRef = useRef<SkillDetailPanelRef>(null);
+    const commandDetailRef = useRef<CommandDetailPanelRef>(null);
+    const agentDetailRef = useRef<AgentDetailPanelRef>(null);
+
+    // Check if any component is in editing mode
+    const isAnyEditing = useCallback(() => {
+        if (activeTab === 'system-prompts' && systemPromptsRef.current?.isEditing()) {
+            return true;
+        }
+        if (activeTab === 'introduction' && introductionRef.current?.isEditing()) {
+            return true;
+        }
+        if (detailView.type === 'skill' && skillDetailRef.current?.isEditing()) {
+            return true;
+        }
+        if (detailView.type === 'command' && commandDetailRef.current?.isEditing()) {
+            return true;
+        }
+        if (detailView.type === 'agent' && agentDetailRef.current?.isEditing()) {
+            return true;
+        }
+        return false;
+    }, [activeTab, detailView]);
+
+    // Handle close with editing check
+    const handleClose = useCallback(() => {
+        if (isAnyEditing()) {
+            toastRef.current.warning('请先保存或取消编辑');
+            return;
+        }
+        onClose();
+    }, [isAnyEditing, onClose]);
+
+    // Handle back with editing check
+    const handleBackFromDetail = useCallback(() => {
+        if (isAnyEditing()) {
+            toastRef.current.warning('请先保存或取消编辑');
+            return;
+        }
+        setDetailView({ type: 'none' });
+    }, [isAnyEditing]);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (detailView.type !== 'none') {
+                    handleBackFromDetail();
+                } else {
+                    handleClose();
+                }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleClose, handleBackFromDetail, detailView]);
+
+    // Prevent background scroll
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    // Listen for skill copy events to refresh the list
+    useEffect(() => {
+        const handleSkillCopied = () => {
+            setInternalRefreshKey(k => k + 1);
+        };
+        window.addEventListener(CUSTOM_EVENTS.SKILL_COPIED_TO_PROJECT, handleSkillCopied);
+        return () => window.removeEventListener(CUSTOM_EVENTS.SKILL_COPIED_TO_PROJECT, handleSkillCopied);
+    }, []);
+
+    const handleSelectSkill = useCallback((name: string, scope: 'user' | 'project', isNewSkill?: boolean) => {
+        setDetailView({ type: 'skill', name, scope, isNewSkill });
+    }, []);
+
+    const handleSelectCommand = useCallback((name: string, scope: 'user' | 'project') => {
+        setDetailView({ type: 'command', name, scope });
+    }, []);
+
+    const handleSelectAgent = useCallback((name: string, scope: 'user' | 'project', isNewAgent?: boolean) => {
+        setDetailView({ type: 'agent', name, scope, isNewAgent });
+    }, []);
+
+    const handleItemSaved = useCallback((autoClose?: boolean) => {
+        setInternalRefreshKey(k => k + 1);
+        if (autoClose) {
+            setDetailView({ type: 'none' });
+        }
+    }, []);
+
+    const handleItemDeleted = useCallback(() => {
+        setDetailView({ type: 'none' });
+        setInternalRefreshKey(k => k + 1);
+    }, []);
+
+    // Handle tab switch with editing check
+    const handleTabSwitch = useCallback((tab: Tab) => {
+        if (isAnyEditing()) {
+            toastRef.current.warning('请先保存或取消编辑');
+            return;
+        }
+        setActiveTab(tab);
+    }, [isAnyEditing]);
+
+    return createPortal(
+        <OverlayBackdrop onClose={handleClose} className="z-[200]">
+            {/* Main Panel */}
+            <div
+                className="relative flex h-[90vh] w-[90vw] max-w-5xl flex-col overflow-hidden rounded-2xl bg-[var(--paper-elevated)] shadow-2xl"
+            >
+                {/* Header — three zones: left (icon+title), center (tabs), right (close) */}
+                <div className="flex flex-shrink-0 items-center border-b border-[var(--line)] bg-gradient-to-r from-[var(--paper-inset)] to-[var(--paper)] px-6 py-3">
+                    {/* Left zone */}
+                    <div className="flex min-w-0 items-center gap-2.5">
+                        {detailView.type !== 'none' && (
+                            <button
+                                type="button"
+                                onClick={handleBackFromDetail}
+                                className="mr-1 rounded-lg p-1.5 text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-inset)] hover:text-[var(--ink)]"
+                                title="返回列表"
+                            >
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                        )}
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--button-dark-bg)] shadow">
+                            <SlidersHorizontal className="h-4 w-4 text-[var(--button-primary-text)]" />
+                        </div>
+                        <h2 className="text-base font-semibold text-[var(--ink)]">Agent 设置</h2>
+                    </div>
+
+                    {/* Tab switcher — left-aligned after title (only in list view) */}
+                    {detailView.type === 'none' && (
+                        <div className="ml-6 flex items-center gap-1">
+                            {TAB_ITEMS.map(item => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => handleTabSwitch(item.key)}
+                                    className={`relative pb-0.5 text-sm font-medium transition-colors ${
+                                        activeTab === item.key
+                                            ? 'text-[var(--accent-warm)]'
+                                            : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
+                                    } ${item.key !== TAB_ITEMS[0].key ? 'ml-4' : ''}`}
+                                >
+                                    {item.label}
+                                    {activeTab === item.key && (
+                                        <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-[var(--accent-warm)]" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Spacer to push close button to right */}
+                    <div className="flex-1" />
+
+                    {/* Right zone */}
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="shrink-0 rounded-lg p-2 text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-inset)] hover:text-[var(--ink)]"
+                        title="关闭 (Esc)"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                {/* Content Area — paper base so elevated cards stand out */}
+                <div className="flex-1 overflow-hidden bg-[var(--paper)]">
+                    {detailView.type === 'none' ? (
+                        <>
+                            {activeTab === 'general' && (
+                                <WorkspaceGeneralTab agentDir={agentDir} />
+                            )}
+                            {activeTab === 'system-prompts' && (
+                                <SystemPromptsPanel ref={systemPromptsRef} agentDir={agentDir} />
+                            )}
+                            {activeTab === 'introduction' && (
+                                <IntroductionPanel ref={introductionRef} agentDir={agentDir} />
+                            )}
+                            {activeTab === 'skills' && (
+                                <div className="h-full overflow-auto">
+                                    <SkillsCommandsList
+                                        scope="project"
+                                        agentDir={agentDir}
+                                        onSelectSkill={handleSelectSkill}
+                                        onSelectCommand={handleSelectCommand}
+                                        refreshKey={refreshKey}
+                                        onClose={onClose}
+                                    />
+                                    <WorkspaceAgentsList
+                                        scope="project"
+                                        agentDir={agentDir}
+                                        onSelectAgent={handleSelectAgent}
+                                        refreshKey={refreshKey}
+                                        onClose={onClose}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    ) : detailView.type === 'skill' ? (
+                        <SkillDetailPanel
+                            ref={skillDetailRef}
+                            name={detailView.name}
+                            scope={detailView.scope}
+                            onBack={handleBackFromDetail}
+                            onSaved={handleItemSaved}
+                            onDeleted={handleItemDeleted}
+                            startInEditMode={detailView.isNewSkill}
+                            agentDir={agentDir}
+                        />
+                    ) : detailView.type === 'command' ? (
+                        <CommandDetailPanel
+                            ref={commandDetailRef}
+                            name={detailView.name}
+                            scope={detailView.scope}
+                            onBack={handleBackFromDetail}
+                            onSaved={handleItemSaved}
+                            onDeleted={handleItemDeleted}
+                            agentDir={agentDir}
+                        />
+                    ) : detailView.type === 'agent' ? (
+                        <AgentDetailPanel
+                            ref={agentDetailRef}
+                            name={detailView.name}
+                            scope={detailView.scope}
+                            onBack={handleBackFromDetail}
+                            onSaved={handleItemSaved}
+                            onDeleted={handleItemDeleted}
+                            startInEditMode={detailView.isNewAgent}
+                            agentDir={agentDir}
+                        />
+                    ) : null}
+                </div>
+
+                {/* Footer hint */}
+                <div className="flex-shrink-0 border-t border-[var(--line)] bg-[var(--paper-inset)] px-6 py-2">
+                    <p className="text-center text-xs text-[var(--ink-muted)]">
+                        按 Esc 关闭 · 配置修改会立即生效
+                    </p>
+                </div>
+            </div>
+        </OverlayBackdrop>,
+        document.body
+    );
+}
