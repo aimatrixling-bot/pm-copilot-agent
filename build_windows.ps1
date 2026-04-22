@@ -321,7 +321,7 @@ try {
     $requiredCspParts = @(
         "http://ipc.localhost",
         "asset:",
-        "https://download.pm-copilot.io"
+        "https://download.pm-copilot.dev"
     )
 
     $missingParts = @()
@@ -538,7 +538,12 @@ try {
     }
     Write-Host "  版本: $codeVersion" -ForegroundColor Cyan
     if (Test-Path $agentBrowserDir) {
-        Remove-Item -Recurse -Force $agentBrowserDir
+        # 长路径下 Remove-Item 会失败，用 robocopy 空目录覆盖后删除
+        $emptyDir = Join-Path $env:TEMP "empty_dir_$(Get-Random)"
+        New-Item -ItemType Directory -Path $emptyDir -Force | Out-Null
+        & robocopy $emptyDir $agentBrowserDir /MIR /R:0 /W:0 /NFL /NDL /NJH /NJS /NP | Out-Null
+        Remove-Item -Recurse -Force $emptyDir -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force $agentBrowserDir -ErrorAction SilentlyContinue
     }
     New-Item -ItemType Directory -Path $agentBrowserDir -Force | Out-Null
     # 复制预生成的 package.json + bun.lock（跳过依赖解析，秒级安装）
@@ -563,6 +568,18 @@ try {
     $nativeBin = Join-Path $abBinDir "agent-browser-win32-x64.exe"
     if (-not (Test-Path $nativeBin)) {
         throw "agent-browser native binary 不存在: agent-browser-win32-x64.exe"
+    }
+    # 精简 node_modules：删除运行时不需要的文件，避免 Windows 长路径导致 NSIS 打包失败
+    Write-Host "    精简 agent-browser node_modules..." -ForegroundColor Cyan
+    $abModules = Join-Path $agentBrowserDir "node_modules"
+    $uncModules = "\\?\" + (Resolve-Path $abModules).Path
+    $pruneExtensions = @("*.d.ts", "*.d.ts.map", "*.js.map")
+    foreach ($ext in $pruneExtensions) {
+        try {
+            [System.IO.Directory]::EnumerateFiles($uncModules, $ext, [System.IO.SearchOption]::AllDirectories) | ForEach-Object {
+                [System.IO.File]::Delete($_)
+            }
+        } catch {}
     }
     Write-Host "    OK - agent-browser CLI 预装完成 (含 native binary)" -ForegroundColor Green
 
