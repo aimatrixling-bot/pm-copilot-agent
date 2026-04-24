@@ -241,7 +241,7 @@ export const PRESET_TEMPLATES: WorkspaceTemplate[] = [
   {
     id: 'pm-copilot',
     name: 'PM Copilot',
-    description: 'AI 产品管理合伙人。27 个 PM Skill，从问题定义到产品上线的全流程支持。',
+    description: 'AI 产品管理合伙人。29 个 PM Skill，从问题定义到产品上线的全流程支持。',
     icon: 'lightning',
     isBuiltin: true,
   },

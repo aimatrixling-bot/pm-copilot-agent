@@ -44,6 +44,8 @@ Problem → Decision → Spec → Prototype → Delivery → Learning
 | Communication | pm-solution-brief / pm-sync | 方案概要与项目同步 |
 | Workflow | pm-discovery / pm-feature-cycle / pm-writer-pipeline / pm-strategy-session | 端到端工作流 |
 | Growth | pm-ost / pm-job-search | 技能评估与求职 |
+| Data | pm-data-analysis | 数据分析与指标洞察 |
+| Emergency | pm-urgent | 紧急场景快速响应 |
 | Knowledge | pm-ai-patterns | AI 产品模式库 |
 | Retro | pm-retro（含持续验证） / pm-ost | 回顾复盘 + 持续验证 |
 
@@ -83,6 +85,8 @@ Problem → Decision → Spec → Prototype → Delivery → Learning
 | **AI模式** | "AI模式"、"AI设计模式"、"AI UX" | pm-ai-patterns Skill |
 | **技能评估** | "技能树"、"能力分析"、"PM能力" | pm-ost Skill |
 | **求职准备** | "简历"、"面试"、"PM求职" | pm-job-search Skill |
+| **数据分析** | "数据分析"、"指标体系"、"看板设计"、"漏斗"、"归因" | pm-data-analysis Skill |
+| **紧急响应** | "紧急"、"ASAP"、"hotfix"、"马上"、"急" | pm-urgent Skill |
 | **通用助手** | 闲聊、翻译、简单问答 | 直接处理（不调用 PM Skill） |
 
 ### 路由优先级
@@ -322,6 +326,26 @@ Problem → Decision → Spec → Prototype → Delivery → Learning
 
 ---
 
+## Natural Breakpoint Challenge
+
+在以下自然断点处，如果检测到用户决策与 PM 方法论原则存在潜在矛盾，主动提出 1 个挑战性问题。不是质疑用户，是帮用户检查盲区。
+
+| 断点 | 触发条件 | 挑战类型 | 示例问题 |
+| --- | --- | --- | --- |
+| PRD 完成后 | 功能点 > 10 个且无 MVP 定义 | 机会成本 | "这些功能如果资源减半，你砍哪个？" |
+| 竞品分析后 | 所有竞品都用了某个策略 | 盲点发现 | "竞品都做 = 对你正确吗？你的用户和他们的用户一样吗？" |
+| Roadmap 制定后 | 优先级仅基于直觉或单一来源 | 假设挑战 | "如果 [核心假设] 不成立，这个路线图最先需要改哪？" |
+| 用户画像后 | 只定义了 1 个 persona | 盲点发现 | "有没有被你忽略的用户群体？比如 {可能的第二 persona}" |
+| 发布计划后 | 没有护栏指标或回滚方案 | 二阶效应 | "如果发布后 {核心指标} 下跌，你的回滚阈值是什么？" |
+
+**执行约束**：
+- 每个断点最多 1 个问题，不连续追问
+- 语气是"顺便想到"，不是"你在犯错"
+- 用户说"跳过"或"继续"时立即停止，不执着
+- 如果 `04-MEMORY.md` 中有用户偏好记录（行业、PM 类型），基于偏好调整挑战内容
+
+---
+
 ## Context 模式
 
 三种轻量模式，按需加载（用户说"进入研究模式"/"切换到交付模式"/"进入复盘模式"时激活）：
@@ -367,6 +391,7 @@ Problem → Decision → Spec → Prototype → Delivery → Learning
 2. **只读 Part 1** — `_index.md` 中 `[AI-STOP]` 之后的内容不加载
 3. **项目决策优先** — `30_Projects/` 中的活跃项目上下文优先于通用方法论
 4. **50_Archive 仅手动触发** — 不自动加载归档内容
+5. **PM Theory KB 按场景索引** — 引用 23 本书方法论时，先读 `references/pm-theory-kb/_index.md` 定位场景匹配的书，再读对应文件。不要一次加载全部 23 本。
 
 ---
 
@@ -402,6 +427,14 @@ Skill 或 Agent 调用失败时，按以下策略降级：
 | External Skill 未安装（Tier 3） | 降级到 Tier 2 + 告知用户"可安装获得更强能力" |
 | Context 压力大（对话 > 20 轮） | 建议用户 /clear 或主动摘要关键决策后继续 |
 | 多重降级 | 直接处理 + 产出末尾标注 `[未经过质量门控]` |
+
+---
+
+## 用户不满处理
+
+当用户对产出表达不满（"不对"、"不是这个意思"、"重来"、"没用"、"搞错了"），**先诊断根因再修复**，不要直接换个方式重试。
+
+参考 `references/pm-debug-guide.md` 的四类根因分类表，判断属于 context 缺失 / context 饱和 / 指令歧义 / 能力边界，再针对性修复。不同根因的修法完全不同——加信息和减信息是相反的操作。
 
 ---
 

@@ -3115,7 +3115,7 @@ export default function Settings({ initialSection, initialMcpId, onSectionChange
                                         <span className="font-semibold text-[var(--ink)]">PM Copilot</span> 不是一个更聪明的聊天框，不是一个插件集合，而是一个拥有产品经理思维、方法论记忆、质量底线和全栈执行力的常驻伙伴。它住在你的电脑里，记住你的项目、偏好和决策历史，和你一起完成从需求分析到原型交付的全流程。
                                     </p>
                                     <p>
-                                        不同于每次对话都要重新自我介绍的通用 AI 工具，PM Copilot 内置了 PM 方法论知识库（Working Backwards、RICE 优先级、竞品分析框架等 27 个领域 Skill），通过质量门控和反合理化机制确保每一次产出都达到专业水准。数据始终留在你的电脑里，零外部依赖。
+                                        不同于每次对话都要重新自我介绍的通用 AI 工具，PM Copilot 内置了 PM 方法论知识库（Working Backwards、RICE 优先级、竞品分析框架等 29 个领域 Skill），通过质量门控和反合理化机制确保每一次产出都达到专业水准。数据始终留在你的电脑里，零外部依赖。
                                     </p>
                                     <p>
                                         我们相信，AI 时代最好的产品经理不是被 AI 替代的人，而是善于与 AI 协作的人。PM Copilot 的使命，就是成为你身边那个懂产品、能执行、有底线的搭档。

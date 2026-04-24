@@ -1,6 +1,6 @@
 /**
  * pmLifecycleMapping — PM Skill to lifecycle stage mapping
- * Pure data: categorizes 27 PM Skills by PM Main Loop stages
+ * Pure data: categorizes 29 PM Skills by PM Main Loop stages
  */
 
 import {
@@ -32,6 +32,8 @@ export const LIFECYCLE_STAGES: readonly LifecycleStage[] = [
     { id: 'quality',    label: '质量审查',   icon: Shield,     skillNames: ['pm-critique'] },
     { id: 'delivery',   label: '交付上线',   icon: Rocket,     skillNames: ['pm-launch', 'pm-sync'] },
     { id: 'growth',     label: '增长探索',   icon: TrendingUp, skillNames: ['pm-ost', 'pm-job-search'] },
+    { id: 'data',       label: '数据分析',   icon: TrendingUp, skillNames: ['pm-data-analysis'] },
+    { id: 'emergency',  label: '紧急响应',   icon: Rocket,     skillNames: ['pm-urgent'] },
     { id: 'retro',      label: '复盘回顾',   icon: RotateCcw,  skillNames: ['pm-retro'] },
     { id: 'workflow',   label: '端到端工作流', icon: Workflow,  skillNames: ['pm-discovery', 'pm-feature-cycle', 'pm-writer-pipeline'] },
 ] as const;

@@ -15,7 +15,7 @@
 
 ## 这是什么
 
-PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（23 本经典著作知识库）、结构化工作流（27 个 Skill）和 AI 推理能力结合在一个本地运行的应用中，覆盖从问题定义到复盘回顾的完整 PM 生命周期。
+PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（23 本经典著作知识库）、结构化工作流（29 个 Skill）和 AI 推理能力结合在一个本地运行的应用中，覆盖从问题定义到复盘回顾的完整 PM 生命周期。
 
 **核心定位**：不是通用 AI 对话工具的 PM 套壳，而是基于方法论深度的专业 PM 工具。
 
@@ -32,9 +32,9 @@ PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（
 | 方法论深度 | 依赖 prompt 技巧 | 23 本书知识库 + 结构化 Skill |
 | 覆盖范围 | 单点（如 PRD 生成） | 全 PM 生命周期（13 个阶段） |
 
-## 27 个 PM Skill
+## 29 个 PM Skill
 
-PM Copilot 的 27 个 Skill 按 PM 主循环的 13 个阶段组织：
+PM Copilot 的 29 个 Skill 按 PM 主循环的 13 个阶段组织：
 
 | 阶段 | Skill | 能力 |
 |------|-------|------|
@@ -61,6 +61,8 @@ PM Copilot 的 27 个 Skill 按 PM 主循环的 13 个阶段组织：
 | | `pm-sync` | 项目状态同步 |
 | **增长探索** | `pm-ost` | PM 技能树评估 |
 | | `pm-job-search` | PM 求职策略 |
+| **数据分析** | `pm-data-analysis` | 7 合 1 数据分析（快照/漏斗/归因/留存/诊断/根因） |
+| **紧急响应** | `pm-urgent` | 紧急场景快速澄清与决策 |
 | **复盘回顾** | `pm-retro` | 4 种回顾方法 |
 | **端到端工作流** | `pm-discovery` | 产品发现（反合理化） |
 | | `pm-feature-cycle` | 功能全周期 |
@@ -120,7 +122,7 @@ npx vite build
 │  (Rust)      │   TypeScript │   Agent SDK   │
 │  桌面框架     │   前端 UI    │   Agent 运行时  │
 ├──────────────┴──────────────┴───────────────┤
-│  27 PM Skills + 5 Agents + 23 Books KB      │
+│  29 PM Skills + 5 Agents + 23 Books KB      │
 └─────────────────────────────────────────────┘
          │                    │
     本地文件系统          AI API (用户自备)
@@ -148,7 +150,7 @@ pm-copilot-agent/
 │   │   │   ├── pm-builder/         # 构建执行
 │   │   │   ├── pm-researcher/      # 研究分析
 │   │   │   └── pm-reviewer/        # 质量审查
-│   │   └── .claude/skills/         # 27 个 PM Skill
+│   │   └── .claude/skills/         # 29 个 PM Skill
 │   ├── src-tauri/                  # Rust 桌面端
 │   ├── src/renderer/               # React 前端
 │   └── specs/                      # 技术文档
@@ -161,7 +163,7 @@ pm-copilot-agent/
 以下是我们**已经实现**和**尚未实现**的功能，避免误导：
 
 **已实现**：
-- 27 个 PM Skill（带 references 和输出模板）
+- 29 个 PM Skill（带 references 和输出模板）
 - 5 个 Agent（prompt 级别，通过 pm-copilot 路由调用）
 - 23 本书方法论知识库
 - Skill Browser 全屏技能浏览器
