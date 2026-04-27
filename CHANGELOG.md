@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - GitHub-based auto-update: GitHub Pages + GitHub Releases 替代 Cloudflare R2
   - 新端点: `https://aimatrixling-bot.github.io/pm-copilot-agent/update/{{target}}.json`
-  - 新签名密钥对（minisign, no password）
+  - 新签名密钥对（v3, password-protected, 修复 `--ci` 无密码密钥 KDF 兼容性问题）
   - CSP 更新: 添加 GitHub Pages + GitHub Release 下载域名
 - `scripts/publish_github.ps1`: 一键发布脚本（构建→签名→Release→gh-pages manifest）
 

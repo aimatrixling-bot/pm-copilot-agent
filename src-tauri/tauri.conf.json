@@ -124,7 +124,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYxQjNDRjU4Q0ZFMzMzMjIKUldRaU0rUFBXTSt6OGZuZ1RMWmtiUDN1UklwdzF2akJaWkJoMDZHaU5YMms1L0M3eDk4VWhDOXYK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhDNjIyNjlBMjU3MTA3QzIKUldUQ0IzRWxtaVppak13NlorSjZlRXBsaW5ybzNxeHV1RlgyMnh5bjVzd2pNenZiaTR6SFU5ZUQK",
       "endpoints": [
         "https://aimatrixling-bot.github.io/pm-copilot-agent/update/{{target}}.json"
       ]
