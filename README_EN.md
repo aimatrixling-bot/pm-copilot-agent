@@ -19,7 +19,7 @@ PM Copilot is a **desktop AI product management tool**. It combines PM methodolo
 
 **Core positioning**: Not a generic AI chatbot repackaged for PMs, but a methodology-driven professional PM tool.
 
-**Current version**: Beta (v0.2.0)
+**Current version**: Beta (v0.2.1)
 
 > **Note**: PM Copilot requires users to bring their own AI API key (DeepSeek, Zhipu AI, SiliconFlow, Anthropic, etc.). The app does not include AI services. All data is stored locally.
 

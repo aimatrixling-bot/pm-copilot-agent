@@ -10,6 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.1] - 2026-04-24
+
+### Added
+- Skill 整合：35→29 Skills（升级 2 + 合并 4 + 删除 2）
+  - 升级为核心: pm-data-analysis（+Core Principle/Scope Gate/保真度/references）, pm-urgent（+紧急保真度/Q&E Entry Mode/决策记录模板）
+  - 合并入核心: pm-architecture→pm-wireframe(IA Mode), pm-pricing→pm-decision(定价框架), pm-business-model→pm-strategy-session(商业模式主题), pm-strategic-planning→pm-roadmap(3H+OKR)
+  - 删除: pm-leadership, pm-portfolio（内容过薄）
+- Auto Memory 默认开启（types.rs enabled:true, threshold:3）
+- PM Debug Guide: 四类根因 PM 场景映射（Context 缺失/饱和、指令歧义、能力边界）
+- KB 场景索引: pm-theory-kb/_index.md 23 本书按 7 场景索引
+- quality-gates-shared.md: 新增第七节"用户不满诊断引导"
+- Agent CLAUDE.md: 新增 Natural Breakpoint Challenge + 用户不满处理 + KB 路由规则
+- pmLifecycleMapping.ts: 新增 data/emergency 两个生命周期阶段
+- pm-data-analysis/references/data-analysis-framework.md: 分析类型决策树 + 统计方法速查
+- pm-wireframe/references/ia-analysis-guide.md: 卡片分类 + 导航模式 + IA 验证方法
+- pm-decision/references/pricing-framework.md: 4 种定价模型 + 定价心理学
+- pm-strategy-session/references/business-model-templates.md: 商业模式画布 + 精益画布
+- pm-roadmap/references/strategic-planning.md: 3H 模型 + OKR 对齐
+
+### Changed
+- ADMIN_AGENT_VERSION: pm-13 → pm-14
+- 前端/后端/Settings UI 中 "27 个 Skill" 统一更新为 "29 个 Skill"
+- Agent CLAUDE.md 路由表: 新增数据分析 + 紧急响应路由
+- pm-copilot.md (A 端): 移除 6 个扩展 Skill 路由，更新为核心 Skill 路由
+- sync-to-claude-code.ps1: 清空 $EXTENDED_SKILLS（全部合并为核心）
+
+### Fixed
+- NSIS installer 模板: 修正 Git-Installer.exe 相对路径（适配 target/release/nsis/x64/ 布局）
+
+---
+
 ## [0.2.0] - 2026-04-22
 
 ### Added
