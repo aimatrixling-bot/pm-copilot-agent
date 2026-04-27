@@ -19,7 +19,7 @@ PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（
 
 **核心定位**：不是通用 AI 对话工具的 PM 套壳，而是基于方法论深度的专业 PM 工具。
 
-**当前版本**：Beta（v0.2.2）
+**当前版本**：Beta（v0.2.3）
 
 > **注意**：PM Copilot 需要用户自备 AI API Key（支持 DeepSeek、智谱 AI、SiliconFlow、Anthropic 等）。应用不内置 AI 服务，所有数据本地存储。
 
