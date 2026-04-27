@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2026-04-27
+
+### Fixed
+- Auto-update 签名修复：Tauri signer `--ci` 无密码密钥 KDF 不兼容
+  - 改用 `-p` 生成带密码密钥对（v3），手动 `tauri signer sign` 签名
+  - 安装包内嵌 pubkey 同步更新为 v3，确保客户端验证匹配
+- 新增 `.github/workflows/pages.yml`：gh-pages 自动部署 workflow
+- KB 渐进查询升级：三级索引（Layer A→B→C）+ Skill→场景路由 + 硬约束
+- Agent CLAUDE.md 知识库路由重构：通用规则 + PM Theory KB 协议
+
+---
+
 ## [0.2.2] - 2026-04-27
 
 ### Added
