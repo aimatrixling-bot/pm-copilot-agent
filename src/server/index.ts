@@ -497,7 +497,7 @@ function seedBundledSkills(): void {
 
 /**
  * Seed PM-specific skills from bundled-agents/pm-copilot/.claude/skills/ to ~/.pm-copilot/skills/.
- * These are the 27 PM workflow skills (pm-prd, pm-comp, etc.) that ship with the bundled agent
+ * These are the 29 PM workflow skills (pm-prd, pm-comp, etc.) that ship with the bundled agent
  * but live under the .claude/skills path that the command scanner doesn't check.
  */
 function seedBundledPmSkills(): void {

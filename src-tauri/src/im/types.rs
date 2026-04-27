@@ -623,16 +623,16 @@ pub struct MemoryAutoUpdateConfig {
 }
 
 fn default_mau_interval() -> u32 { 24 }
-fn default_mau_threshold() -> u32 { 5 }
+fn default_mau_threshold() -> u32 { 3 }
 fn default_mau_window_start() -> String { "00:00".to_string() }
 fn default_mau_window_end() -> String { "06:00".to_string() }
 
 impl Default for MemoryAutoUpdateConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
+            enabled: true,
             interval_hours: 24,
-            query_threshold: 5,
+            query_threshold: 3,
             update_window_start: "00:00".to_string(),
             update_window_end: "06:00".to_string(),
             update_window_timezone: None,

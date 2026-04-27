@@ -15,11 +15,11 @@ English | [中文](./README.md)
 
 ## What is this?
 
-PM Copilot is a **desktop AI product management tool**. It combines PM methodology (23-book knowledge base), structured workflows (27 Skills), and AI reasoning in a locally-run application, covering the full PM lifecycle from problem framing to retrospective.
+PM Copilot is a **desktop AI product management tool**. It combines PM methodology (23-book knowledge base), structured workflows (29 Skills), and AI reasoning in a locally-run application, covering the full PM lifecycle from problem framing to retrospective.
 
 **Core positioning**: Not a generic AI chatbot repackaged for PMs, but a methodology-driven professional PM tool.
 
-**Current version**: Beta (v0.2.0)
+**Current version**: Beta (v0.2.1)
 
 > **Note**: PM Copilot requires users to bring their own AI API key (DeepSeek, Zhipu AI, SiliconFlow, Anthropic, etc.). The app does not include AI services. All data is stored locally.
 
@@ -32,9 +32,9 @@ PM Copilot is a **desktop AI product management tool**. It combines PM methodolo
 | Methodology | Relies on prompt tricks | 23-book KB + structured Skills |
 | Coverage | Single-point (e.g., PRD only) | Full PM lifecycle (13 stages) |
 
-## 27 PM Skills
+## 29 PM Skills
 
-PM Copilot's 27 Skills are organized by 13 stages of the PM Main Loop:
+PM Copilot's 29 Skills are organized by 13 stages of the PM Main Loop:
 
 | Stage | Skill | Capability |
 |-------|-------|-----------|
@@ -61,6 +61,8 @@ PM Copilot's 27 Skills are organized by 13 stages of the PM Main Loop:
 | | `pm-sync` | Project status sync |
 | **Growth** | `pm-ost` | PM skill tree assessment |
 | | `pm-job-search` | PM job search strategy |
+| **Data Analysis** | `pm-data-analysis` | 7-in-1 data analysis (snapshot/funnel/attribution/cohort/diagnostic/RCA) |
+| **Emergency** | `pm-urgent` | Rapid clarification & decision for urgent scenarios |
 | **Retrospective** | `pm-retro` | 4 retrospective methods |
 | **E2E Workflow** | `pm-discovery` | Product discovery (anti-rationalization) |
 | | `pm-feature-cycle` | Feature full-cycle |
@@ -121,7 +123,7 @@ npx vite build
 │  Desktop     │   Frontend   │   Agent       │
 │  Framework   │   UI         │   Runtime     │
 ├──────────────┴──────────────┴───────────────┤
-│  27 PM Skills + 5 Agents + 23 Books KB      │
+│  29 PM Skills + 5 Agents + 23 Books KB      │
 └─────────────────────────────────────────────┘
          │                    │
     Local Filesystem     AI API (BYOK)
@@ -149,7 +151,7 @@ pm-copilot-agent/
 │   │   │   ├── pm-builder/         # Build executor
 │   │   │   ├── pm-researcher/      # Research analyst
 │   │   │   └── pm-reviewer/        # Quality reviewer
-│   │   └── .claude/skills/         # 27 PM Skills
+│   │   └── .claude/skills/         # 29 PM Skills
 │   ├── src-tauri/                  # Rust desktop
 │   ├── src/renderer/               # React frontend
 │   └── specs/                      # Technical docs
@@ -162,7 +164,7 @@ pm-copilot-agent/
 What we **have** and **have not** implemented — no overselling:
 
 **Implemented**:
-- 27 PM Skills (with references and output templates)
+- 29 PM Skills (with references and output templates)
 - 5 Agents (prompt-level, routed through pm-copilot)
 - 23-book methodology knowledge base
 - Skill Browser (full-screen skill explorer)

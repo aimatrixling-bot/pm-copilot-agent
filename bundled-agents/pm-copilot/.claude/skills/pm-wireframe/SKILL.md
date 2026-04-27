@@ -53,6 +53,16 @@ argument-hint: "[PRD 路径或页面描述]"
 5. 产出线框文件
 ```
 
+### IA Analysis Mode（信息架构优先）
+
+当用户关注信息组织、导航结构、内容分类时启用此模式：
+
+1. **内容盘点** — 列出所有需要组织的内容/功能
+2. **卡片分类** — 建议开放式或封闭式分类方法（见 `references/ia-analysis-guide.md`）
+3. **导航结构** — 输出站点地图（Max 3 层）
+4. **内容模型** — 定义内容类型和关系
+5. **验证方法** — 建议树状测试或首次点击测试
+
 ## 参数
 
 | 参数 | 类型 | 必需 | 默认值 |
@@ -128,3 +138,4 @@ argument-hint: "[PRD 路径或页面描述]"
 | 需要可交互演示 | pm-prototype |
 | 需要设计系统 | pm-prototype（带美学基调） |
 | 需要从 PRD 开始 | pm-prd → pm-wireframe → pm-prototype |
+| 需要信息架构分析 | pm-wireframe IA Analysis Mode |
