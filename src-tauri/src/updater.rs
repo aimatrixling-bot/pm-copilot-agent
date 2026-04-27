@@ -198,7 +198,7 @@ async fn check_and_download_silently(app: &AppHandle) -> Result<Option<String>, 
     logger::info(
         app,
         format!(
-            "[Updater] Checking for updates... Current: v{}, Target: {}, Endpoint: https://download.pm-copilot.io/update/{}.json",
+            "[Updater] Checking for updates... Current: v{}, Target: {}, Endpoint: https://aimatrixling-bot.github.io/pm-copilot-agent/update/{}.json",
             current_version, target, target
         ),
     );
@@ -501,7 +501,7 @@ pub async fn test_update_connectivity(app: AppHandle) -> Result<String, String> 
     // Detect architecture
     let target = get_update_target();
 
-    let url = format!("https://download.pm-copilot.io/update/{}.json", target);
+    let url = format!("https://aimatrixling-bot.github.io/pm-copilot-agent/update/{}.json", target);
     logger::info(&app, format!("[Updater] Testing HTTP connectivity to: {}", url));
 
     // Build a reqwest client with user's proxy configuration

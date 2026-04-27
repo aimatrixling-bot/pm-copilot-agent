@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "PM Copilot",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "identifier": "com.ai-matrix.site",
   "build": {
     "frontendDist": "../dist",
@@ -33,7 +33,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: tauri: asset: http://ipc.localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: tauri: asset: http://ipc.localhost http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://download.pm-copilot.dev; fetch-src 'self' ipc: tauri: asset: http://ipc.localhost https://download.pm-copilot.dev; img-src 'self' data: blob: asset: https://asset.localhost https://download.pm-copilot.dev https:; media-src 'self' blob: asset: http://asset.localhost https://asset.localhost;",
+      "csp": "default-src 'self' ipc: tauri: asset: http://ipc.localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: tauri: asset: http://ipc.localhost http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://aimatrixling-bot.github.io https://github.com https://objects.githubusercontent.com; fetch-src 'self' ipc: tauri: asset: http://ipc.localhost https://aimatrixling-bot.github.io https://github.com https://objects.githubusercontent.com; img-src 'self' data: blob: asset: https://asset.localhost https:; media-src 'self' blob: asset: http://asset.localhost https://asset.localhost;",
       "dangerousDisableAssetCspModification": true
     }
   },
@@ -124,9 +124,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY3RkQ5QjIzMTE4RTgyRTkKUldUcGdvNFJJNXY5OTB3T2pnUzVUbjFrV203Zk5ZTDg0NVJRdGI0UVRranJzTUsvM0hGcmFlc0IK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU0N0M5Qjc3NDkzRjQ4NTQKUldSVVNEOUpkNXQ4VkFzYXk2RkUzZm1KY1FxVTVaTFo5YkdHQlRCUG4wRTVmaWJ5Vld3Y0EvOGYK",
       "endpoints": [
-        "https://download.pm-copilot.dev/update/{{target}}.json"
+        "https://aimatrixling-bot.github.io/pm-copilot-agent/update/{{target}}.json"
       ]
     }
   }
