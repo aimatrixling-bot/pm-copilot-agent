@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] - 2026-04-27
+
+### Added
+- GitHub-based auto-update: GitHub Pages + GitHub Releases 替代 Cloudflare R2
+  - 新端点: `https://aimatrixling-bot.github.io/pm-copilot-agent/update/{{target}}.json`
+  - 新签名密钥对（minisign, no password）
+  - CSP 更新: 添加 GitHub Pages + GitHub Release 下载域名
+- `scripts/publish_github.ps1`: 一键发布脚本（构建→签名→Release→gh-pages manifest）
+
+### Fixed
+- `updater.rs`: 修复 2 处域名不一致（`.io` → `github.io`）
+- `tauri.conf.json`: pubkey 更新为新密钥对, endpoint 更新, CSP 域名修正
+
+---
+
 ## [0.2.1] - 2026-04-24
 
 ### Added
