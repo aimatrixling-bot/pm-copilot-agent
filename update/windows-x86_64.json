@@ -1,7 +1,7 @@
 {
-  "version": "0.2.2",
-  "notes": "PM Copilot v0.2.2 - GitHub auto-update + signing fix",
-  "pub_date": "2026-04-27T22:00:00Z",
-  "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUQ0IzRWxtaVppak55OUJYUG9pV1N5SDdYQUx5SXFDd0xMNWV3RTh3NmxCbTVkeldYcjFFenFjcUFJdU4zV2wzeFBXRzQwYVlQcFhMN2JHejAwYzg1TDJaa3lRYlJWK3dZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc3MzAwNTM4CWZpbGU6UE0gQ29waWxvdF8wLjIuMl94NjQtc2V0dXAubnNpcy56aXAKdWtpSUlNaTFxV1FMbkU0bnNrenQrYTN0dXMwS3o3U1Fta21aR0xaZEp2S3BkdmJTLzRGSUdvTTUreWNCT2FCUExkNjdPc2RFMzVKa0JpKzZsd0dkQVE9PQo=",
-  "url": "https://github.com/aimatrixling-bot/pm-copilot-agent/releases/download/v0.2.2/PM-Copilot_0.2.2_x64-setup.nsis.zip"
+  "version": "0.2.3",
+  "notes": "PM Copilot v0.2.3 - Signing fix + KB progressive query",
+  "pub_date": "2026-04-27T18:00:00Z",
+  "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUQ0IzRWxtaVppaktvL0JnTGk4cEpmSHNLZmVENS80Yk51YytEUFJpYjE2TWxJc2RGeGt4RzhxZUVRb09paE90eElVZ3hDdDNZVVp6M3U2K284ZmVUTmlrM0k0QXFyMGdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc3MzEwNzcxCWZpbGU6UE0gQ29waWxvdF8wLjIuM194NjQtc2V0dXAubnNpcy56aXAKVmtOcEhKZDFYUitTb1VLYlRvdEtmaCtBWHJsMk4zOWxuN1d2ZjFLdUU4S0tCQ0RhT1BISHpWSGtFcHJxeUJoSVN3dTFsMU1qQ3c0bUxuNWJTMHkwQnc9PQo=",
+  "url": "https://github.com/aimatrixling-bot/pm-copilot-agent/releases/download/v0.2.3/PM-Copilot_0.2.3_x64-setup.nsis.zip"
 }
