@@ -15,7 +15,7 @@ English | [中文](./README.md)
 
 ## What is this?
 
-PM Copilot is a **desktop AI product management tool**. It combines PM methodology (23-book knowledge base), structured workflows (29 Skills), and AI reasoning in a locally-run application, covering the full PM lifecycle from problem framing to retrospective.
+PM Copilot is a **desktop AI product management tool**. It combines a classic PM methodology knowledge base, structured PM workflows, and AI reasoning in a locally-run application, covering the full PM lifecycle from problem framing to retrospective.
 
 **Core positioning**: Not a generic AI chatbot repackaged for PMs, but a methodology-driven professional PM tool.
 
@@ -29,12 +29,12 @@ PM Copilot is a **desktop AI product management tool**. It combines PM methodolo
 |-----------|-----------------|-----------|
 | Platform | Browser / Cloud | Desktop (local) |
 | Data Privacy | Uploaded to cloud | Local storage, never uploaded |
-| Methodology | Relies on prompt tricks | 23-book KB + structured Skills |
+| Methodology | Relies on prompt tricks | Embedded classic methodology + structured Skills |
 | Coverage | Single-point (e.g., PRD only) | Full PM lifecycle (13 stages) |
 
-## 29 PM Skills
+## PM Skills
 
-PM Copilot's 29 Skills are organized by 13 stages of the PM Main Loop:
+PM Copilot's Skills are organized by PM lifecycle stages, covering the full workflow from problem framing to retrospective:
 
 | Stage | Skill | Capability |
 |-------|-------|-----------|
@@ -123,7 +123,7 @@ npx vite build
 │  Desktop     │   Frontend   │   Agent       │
 │  Framework   │   UI         │   Runtime     │
 ├──────────────┴──────────────┴───────────────┤
-│  29 PM Skills + 5 Agents + 23 Books KB      │
+│  PM Skills + Agents + Methodology KB         │
 └─────────────────────────────────────────────┘
          │                    │
     Local Filesystem     AI API (BYOK)
@@ -136,7 +136,7 @@ npx vite build
 | Frontend | React + TypeScript + TailwindCSS | Responsive UI |
 | Agent Runtime | Bun + Claude Agent SDK | Skill execution engine |
 | Agent Orchestration | Fork (shared context) + Spawn (isolated) | Multi-agent collaboration |
-| Methodology KB | 23 classic PM books | Key_Models.md local embeddings |
+| Methodology KB | Distilled from classic PM books | Key_Models.md local embeddings |
 
 ## Project Structure
 
@@ -151,7 +151,7 @@ pm-copilot-agent/
 │   │   │   ├── pm-builder/         # Build executor
 │   │   │   ├── pm-researcher/      # Research analyst
 │   │   │   └── pm-reviewer/        # Quality reviewer
-│   │   └── .claude/skills/         # 29 PM Skills
+│   │   └── .claude/skills/         # PM Skills
 │   ├── src-tauri/                  # Rust desktop
 │   ├── src/renderer/               # React frontend
 │   └── specs/                      # Technical docs
@@ -164,9 +164,9 @@ pm-copilot-agent/
 What we **have** and **have not** implemented — no overselling:
 
 **Implemented**:
-- 29 PM Skills (with references and output templates)
-- 5 Agents (prompt-level, routed through pm-copilot)
-- 23-book methodology knowledge base
+- PM Skills covering 13 lifecycle stages (with references and output templates)
+- Multi-agent collaboration (prompt-level, routed through pm-copilot)
+- Methodology knowledge base (distilled from classic PM books)
 - Skill Browser (full-screen skill explorer)
 - Setup Wizard (first-run configuration guide)
 - Coco — out-of-the-box PM AI partner (pre-built identity + customizable)

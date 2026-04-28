@@ -15,7 +15,7 @@
 
 ## 这是什么
 
-PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（23 本经典著作知识库）、结构化工作流（29 个 Skill）和 AI 推理能力结合在一个本地运行的应用中，覆盖从问题定义到复盘回顾的完整 PM 生命周期。
+PM Copilot 是一款**桌面端 AI 产品管理工具**。它将经典产品方法论知识库、结构化 PM 工作流和 AI 推理能力结合在一个本地运行的应用中，覆盖从问题定义到复盘回顾的完整 PM 生命周期。
 
 **核心定位**：不是通用 AI 对话工具的 PM 套壳，而是基于方法论深度的专业 PM 工具。
 
@@ -29,12 +29,12 @@ PM Copilot 是一款**桌面端 AI 产品管理工具**。它将 PM 方法论（
 |------|------------|-----------|
 | 运行环境 | 浏览器 / 云端 | 桌面端（本地） |
 | 数据隐私 | 上传到云端 | 本地存储，不上传 |
-| 方法论深度 | 依赖 prompt 技巧 | 23 本书知识库 + 结构化 Skill |
+| 方法论深度 | 依赖 prompt 技巧 | 内嵌经典方法论 + 结构化 Skill |
 | 覆盖范围 | 单点（如 PRD 生成） | 全 PM 生命周期（13 个阶段） |
 
-## 29 个 PM Skill
+## PM Skills
 
-PM Copilot 的 29 个 Skill 按 PM 主循环的 13 个阶段组织：
+PM Copilot 的 Skills 按 PM 主循环的阶段组织，覆盖从问题定义到复盘回顾的完整流程：
 
 | 阶段 | Skill | 能力 |
 |------|-------|------|
@@ -122,7 +122,7 @@ npx vite build
 │  (Rust)      │   TypeScript │   Agent SDK   │
 │  桌面框架     │   前端 UI    │   Agent 运行时  │
 ├──────────────┴──────────────┴───────────────┤
-│  29 PM Skills + 5 Agents + 23 Books KB      │
+│  PM Skills + Agents + 方法论知识库           │
 └─────────────────────────────────────────────┘
          │                    │
     本地文件系统          AI API (用户自备)
@@ -135,7 +135,7 @@ npx vite build
 | 前端 | React + TypeScript + TailwindCSS | 响应式 UI |
 | Agent 运行时 | Bun + Claude Agent SDK | Skill 执行引擎 |
 | Agent 编排 | Fork (共享上下文) + Spawn (独立上下文) | 多 Agent 协作 |
-| 方法论知识库 | 23 本 PM 经典著作 | Key_Models.md 本地嵌入 |
+| 方法论知识库 | PM 经典著作提炼 | Key_Models.md 本地嵌入 |
 
 ## 项目结构
 
@@ -150,7 +150,7 @@ pm-copilot-agent/
 │   │   │   ├── pm-builder/         # 构建执行
 │   │   │   ├── pm-researcher/      # 研究分析
 │   │   │   └── pm-reviewer/        # 质量审查
-│   │   └── .claude/skills/         # 29 个 PM Skill
+│   │   └── .claude/skills/         # PM Skills
 │   ├── src-tauri/                  # Rust 桌面端
 │   ├── src/renderer/               # React 前端
 │   └── specs/                      # 技术文档
@@ -163,9 +163,9 @@ pm-copilot-agent/
 以下是我们**已经实现**和**尚未实现**的功能，避免误导：
 
 **已实现**：
-- 29 个 PM Skill（带 references 和输出模板）
-- 5 个 Agent（prompt 级别，通过 pm-copilot 路由调用）
-- 23 本书方法论知识库
+- PM Skills 覆盖 13 个阶段（带 references 和输出模板）
+- 多 Agent 协作（prompt 级别，通过 pm-copilot 路由调用）
+- 方法论知识库（经典 PM 著作提炼）
 - Skill Browser 全屏技能浏览器
 - Setup Wizard 首次配置引导
 - Coco — 开箱即用的 PM AI 合伙人（预填身份 + 可个性化）
