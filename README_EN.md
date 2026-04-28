@@ -17,7 +17,7 @@ English | [中文](./README.md)
 
 PM Copilot is a **desktop AI product management tool**. It combines a classic PM methodology knowledge base, structured PM workflows, and AI reasoning in a locally-run application, covering the full PM lifecycle from problem framing to retrospective.
 
-**Core positioning**: Not a generic AI chatbot repackaged for PMs, but a methodology-driven professional PM tool.
+**Core positioning**: A methodology-driven professional PM tool.
 
 **Current version**: Beta (v0.2.3)
 
