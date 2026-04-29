@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.5] - 2026-04-29
+
+### Changed
+- **Tier 1: 29 PM Skills 质量基础设施**
+  - 所有 29 个 Skill 添加 Hard Bans（硬禁令表）：5 条负面约束 + 修正动作
+  - 4 个研究类 Skill（pm-comp/pm-data-analysis/pm-persona/pm-problem-frame）添加 Source Attribution 规范
+  - 3 个 Skill（pm-wireframe/pm-prototype/pm-retro）添加反合理化检查表
+  - pm-sync 交付检查补充：报告长度控制 + 风险项可执行描述
+- **Tier 2: 深度能力增强**
+  - pm-tech-spec + pm-eng-request：约束翻译模式（CONSTRAINTS → IMPLEMENTATION CONTRACT → HANDOFF）
+  - pm-discovery Phase 3 升级为深度研究：多源证据收集 + 信号过滤 + 差异化空间发现
+  - pm-writer-pipeline：Brand Voice 系统 + AI 味禁词表 + 文档语调一致性规则
+- `ADMIN_AGENT_VERSION` bump: pm-15 → pm-16
+
+---
+
 ## [0.2.4] - 2026-04-29
 
 ### Fixed
