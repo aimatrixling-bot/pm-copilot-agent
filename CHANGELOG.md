@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.4] - 2026-04-29
+
+### Fixed
+- 历史会话切换时消息不显示：`TabProvider` session 加载 useEffect 中 `isStreamingRef` 守卫过宽，
+  导致 real→real 会话切换时 `loadSession` 被错误跳过。加 `wasPendingSession` 条件区分 pending→real
+  升级（跳过，SSE 推送）和 real→real 切换（重置 streaming 并加载目标会话）
+- Rust 构建失败（E0282）：`sidecar.rs` 中垃圾时间戳导致类型推断失败，已清除
+- 清理 6 处诊断日志（`[DIAG]`）
+
+### Changed
+- Sprint A: eval-v3 smoke pack 8 个 P0 case + 真实任务场景验证
+- 29 PM Skills 更新
+- Agent CLAUDE.md 精简：移除 Fork/Spawn/三级能力模型的过度声明
+- `ADMIN_AGENT_VERSION` 更新
+
+---
+
 ## [0.2.3] - 2026-04-27
 
 ### Fixed

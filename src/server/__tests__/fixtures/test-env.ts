@@ -27,9 +27,9 @@ export interface ProviderConfig {
 // ===== Configuration Loaders =====
 
 /**
- * Load Moonshot API key from ~/.pm-copilot/config.json
+ * Load API key from ~/.pm-copilot/config.json by provider key
  */
-function loadMoonshotApiKey(): string | undefined {
+function loadProviderApiKey(providerKey: string): string | undefined {
   const configPath = join(homedir(), '.pm-copilot', 'config.json');
 
   if (!existsSync(configPath)) {
@@ -42,11 +42,10 @@ function loadMoonshotApiKey(): string | undefined {
     const config = JSON.parse(content) as {
       providerApiKeys?: Record<string, string>;
     };
-    return config.providerApiKeys?.moonshot;
+    return config.providerApiKeys?.[providerKey];
   } catch (error) {
-    // Only log error message, not full stack trace which may expose file paths
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[test-env] Failed to load Moonshot API key:', message);
+    console.error(`[test-env] Failed to load ${providerKey} API key:`, message);
     return undefined;
   }
 }
@@ -96,9 +95,24 @@ export const MOONSHOT_CONFIG: ProviderConfig = {
   id: 'moonshot',
   name: 'Moonshot',
   baseUrl: 'https://api.moonshot.cn/anthropic',
-  apiKey: loadMoonshotApiKey(),
-  authType: 'auth_token', // Moonshot uses AUTH_TOKEN header
+  apiKey: loadProviderApiKey('moonshot'),
+  authType: 'auth_token',
   model: 'kimi-k2.5',
+  isSubscription: false,
+};
+
+/**
+ * Zhipu (GLM) provider config
+ * Uses API key from ~/.pm-copilot/config.json
+ * Base URL: Anthropic-compatible endpoint
+ */
+export const ZHIPU_CONFIG: ProviderConfig = {
+  id: 'zhipu',
+  name: '智谱 AI',
+  baseUrl: 'https://open.bigmodel.cn/api/anthropic',
+  apiKey: loadProviderApiKey('zhipu'),
+  authType: 'auth_token',
+  model: 'glm-4.7',
   isSubscription: false,
 };
 
@@ -112,6 +126,10 @@ export const PROVIDERS = {
   moonshot: {
     config: MOONSHOT_CONFIG,
     available: !!MOONSHOT_CONFIG.apiKey,
+  },
+  zhipu: {
+    config: ZHIPU_CONFIG,
+    available: !!ZHIPU_CONFIG.apiKey,
   },
 };
 
@@ -129,13 +147,17 @@ export function getAvailableProviders(): ProviderConfig[] {
     available.push(PROVIDERS.moonshot.config);
   }
 
+  if (PROVIDERS.zhipu.available) {
+    available.push(PROVIDERS.zhipu.config);
+  }
+
   return available;
 }
 
 /**
  * Skip test if provider is not available
  */
-export function skipIfUnavailable(providerId: 'anthropic' | 'moonshot'): void {
+export function skipIfUnavailable(providerId: 'anthropic' | 'moonshot' | 'zhipu'): void {
   const provider = PROVIDERS[providerId];
   if (!provider.available) {
     console.log(`[test] Skipping: ${provider.config.name} not configured`);

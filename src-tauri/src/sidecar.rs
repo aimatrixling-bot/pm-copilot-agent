@@ -3768,4 +3768,3 @@ fn resolve_agent_runtime_from_config(workspace_path: &std::path::Path) -> Option
     }
     None
 }
-

@@ -352,6 +352,10 @@ export default function TabProvider({
     // Without this, SSE replays race with loadSession and create intermediate
     // render states (3→46→249) causing visible scroll jumps on session entry.
     const isLoadingSessionRef = useRef(false);
+    // Timestamp of last loadSession/resetSession completion (grace period to skip
+    // pre-warm system-init that would incorrectly show "thinking..." indicator).
+    // Cron/IM sessions use skipLoadingReset so this stays old → gate passes correctly.
+    const sessionLoadedAtRef = useRef(0);
     // Ref for cron task exit handler (set by useCronTask hook via context)
     const onCronTaskExitRequestedRef = useRef<((taskId: string, reason: string) => void) | null>(null);
     // Synchronous map: toolUseId → toolName. Updated outside React state updaters
@@ -404,6 +408,7 @@ export default function TabProvider({
         setSessionState('idle');  // Reset session state for new conversation
         setSystemStatus(null);
         setAgentError(null);
+        sessionLoadedAtRef.current = Date.now(); // Grace period for pre-warm system-init
         setUnifiedLogs([]);
         setLogs([]);
         clearInteractiveState();
@@ -603,10 +608,12 @@ export default function TabProvider({
                     break;
                 }
 
-                // When loadSession REST API is in-flight, skip the message clear —
-                // loadSession will overwrite historyMessages with the full batch.
+                // When loadSession REST API is in-flight (or just completed within grace period),
+                // skip the message clear — loadSession will overwrite historyMessages with the full batch.
                 // Still sync sessionState below so isLoading stays correct.
-                if (!isLoadingSessionRef.current) {
+                const _graceMs = Date.now() - sessionLoadedAtRef.current;
+                const _isLoadingSess = isLoadingSessionRef.current;
+                if (!_isLoadingSess && _graceMs > 5000) {
                     seenIdsRef.current.clear();
                     setHistoryMessages([]);
                     setStreamingMessage(null);
@@ -707,7 +714,11 @@ export default function TabProvider({
                         // This happens when a Tab connects mid-flight (e.g., IM session in progress)
                         // and receives a replayed chat:status → "running" from the SSE last-value cache.
                         // Set isLoading so the UI shows the loading state instead of action buttons.
-                        setIsLoading(true);
+                        // Skip if we just loaded a historical session — pre-warm triggers this.
+                        const justLoadedHistory = Date.now() - sessionLoadedAtRef.current < 10000;
+                        if (!justLoadedHistory) {
+                            setIsLoading(true);
+                        }
                     }
                 }
                 break;
@@ -1187,11 +1198,15 @@ export default function TabProvider({
                 if (payload?.info) {
                     setSystemInitInfo(payload.info);
 
-                    // CRITICAL: Mark session as active immediately when system-init arrives
-                    // This happens BEFORE message-chunk, so we must set isStreamingRef here
-                    // to prevent loadSession from aborting an active cron task during sessionId upgrade
-                    isStreamingRef.current = true;
-                    setIsLoading(true);
+                    // Mark session as active when system-init arrives.
+                    // Skip if we just loaded a historical session (within 5s) — pre-warm triggers
+                    // system-init which would incorrectly show "thinking..." loading indicator.
+                    // For cron/IM sessions, loadSession uses skipLoadingReset so ref stays old → gate passes.
+                    const justLoadedHistory = Date.now() - sessionLoadedAtRef.current < 5000;
+                    if (!justLoadedHistory) {
+                        isStreamingRef.current = true;
+                        setIsLoading(true);
+                    }
 
                     // Auto-sync sessionId when a new session is created (e.g., first message in empty session)
                     // This ensures currentSessionId stays in sync with the actual session
@@ -2083,6 +2098,7 @@ export default function TabProvider({
             if (!options?.skipLoadingReset) {
                 setIsLoading(false);
                 setSessionState('idle');  // Reset session state when loading historical session
+                sessionLoadedAtRef.current = Date.now(); // Grace period for pre-warm system-init
             }
             setSystemStatus(null);
             setAgentError(null);
@@ -2219,15 +2235,24 @@ export default function TabProvider({
             initialSessionLoadedRef.current = true;
             return;
         }
-        // Exception 2: session is actively streaming (session ID upgrade during first message).
+        // Exception 2: session is actively streaming AND this is a pending→real upgrade.
         // This happens when: resetSession → sendMessage (clears isNewSessionRef) → chat:system-init
         // assigns real sessionId → parent re-renders with new prop → useEffect fires.
         // At this point isNewSessionRef is false but the session is actively processing.
         // loadSession would reset isLoading/sessionState, causing stop button to briefly disappear.
-        if (isStreamingRef.current) {
-            console.log(`[TabProvider ${tabId}] SessionId changed to ${sessionId} while streaming, skipping loadSession`);
+        // IMPORTANT: Only skip for pending→real upgrades. When switching between two real sessions
+        // (e.g., user clicks a historical session while AI was responding), we MUST loadSession
+        // because the old session's stream is irrelevant to the new target session.
+        if (isStreamingRef.current && wasPendingSession) {
+            console.log(`[TabProvider ${tabId}] SessionId upgraded from pending to ${sessionId} while streaming, skipping loadSession`);
             initialSessionLoadedRef.current = true;
             return;
+        }
+        // If streaming from a real→real switch (user clicked historical session during AI response),
+        // reset streaming state so loadSession can proceed for the new target session.
+        if (isStreamingRef.current) {
+            console.log(`[TabProvider ${tabId}] SessionId changed from ${prevSessionId} to ${sessionId} while streaming (real→real), resetting isStreaming and loading target session`);
+            isStreamingRef.current = false;
         }
         if (prevSessionId !== sessionId) {
             console.log(`[TabProvider ${tabId}] SessionId changed from ${prevSessionId} to ${sessionId}, loading session`);
