@@ -45,6 +45,20 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 }
 
 # ── 3. Build ──
+Write-Step "Building server + plugin-bridge..."
+& bun build ./src/server/index.ts --outfile=./src-tauri/resources/server-dist.js --target=bun 2>&1 | ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) { Write-Err "Server build failed"; exit 1 }
+
+& bun build ./src/server/plugin-bridge/index.ts --outfile=./src-tauri/resources/plugin-bridge-dist.js --target=bun 2>&1 | ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) { Write-Err "Plugin Bridge build failed"; exit 1 }
+
+$serverDist = Get-Content "src-tauri\resources\server-dist.js" -Raw
+if ($serverDist.Length -lt 100) {
+    Write-Err "server-dist.js is too small ($($serverDist.Length) bytes) — likely a placeholder"
+    exit 1
+}
+Write-Ok "Server + Plugin Bridge built ($([math]::Round($serverDist.Length / 1KB, 0)) KB)"
+
 Write-Step "Building Tauri app (this takes several minutes)..."
 bun run tauri:build 2>&1 | ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) {
@@ -174,6 +188,24 @@ try {
 } catch {
     Write-Warn "Could not verify manifest yet: $_"
     Write-Warn "GitHub Pages may need more time to deploy (usually < 1 min)"
+}
+
+# ── 8. Clean old build artifacts ──
+Write-Step "Cleaning old build artifacts..."
+$AllArtifacts = Get-ChildItem $BundleDir -File | Where-Object {
+    $_.Name -match '\d+\.\d+\.\d+' -and
+    $_.Name -notmatch [regex]::Escape($Version)
+}
+$Cleaned = 0
+foreach ($artifact in $AllArtifacts) {
+    Remove-Item $artifact.FullName -Force
+    Write-Host "  DEL $($artifact.Name)" -ForegroundColor DarkGray
+    $Cleaned++
+}
+if ($Cleaned -gt 0) {
+    Write-Ok "Cleaned $Cleaned old artifact(s), kept v$Version"
+} else {
+    Write-Ok "No old artifacts to clean"
 }
 
 # ── Done ──
