@@ -60,10 +60,13 @@ if ($serverDist.Length -lt 100) {
 Write-Ok "Server + Plugin Bridge built ($([math]::Round($serverDist.Length / 1KB, 0)) KB)"
 
 Write-Step "Building Tauri app (this takes several minutes)..."
-$buildOutput = bun run tauri:build 2>&1
-$buildOutput | ForEach-Object { Write-Host "  $_" }
-if ($LASTEXITCODE -ne 0 -and $buildOutput -match "error") {
-    Write-Err "Build failed"
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+bun run tauri:build 2>&1 | ForEach-Object { Write-Host "  $_" }
+$tauriExit = $LASTEXITCODE
+$ErrorActionPreference = $prevEAP
+if ($tauriExit -ne 0) {
+    Write-Err "Tauri build failed (exit code $tauriExit)"
     exit 1
 }
 Write-Ok "Build complete"
