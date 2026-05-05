@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.6] - 2026-05-05
+
+### Changed
+
+- **Skill 按需加载**: 新增 `skill-router.ts`（27 条路由规则覆盖全部 29 Skill），system prompt 从 ~147K 降至 ~25-30K tokens
+- **Iron Law BM-2 信息充足性分级**: 区分充足/部分缺失/严重不足三档，禁止"只问不做"，追问不超过回复篇幅 30%
+- **Pre-flight 内部化**: 简单/标准任务不输出 Pre-flight，复杂任务一句话说明执行路径
+- **Iron Law #11**: 关键判断不基于未确认假设，给出分支方案覆盖主要可能性
+- `ADMIN_AGENT_VERSION` bump: pm-16 → pm-17
+
+### Fixed
+
+- **Session reset/switch 不重置 skill config**: `resetSession()` 和 `switchToSession()` 现在正确调用 `updateSkillsForRoute([])` 重置路由
+- **路由无匹配时不重置**: `enqueueUserMessage` 中 `routeToSkill()` 返回空数组时现在正确重置为全量加载
+
+---
+
 ## [0.2.5] - 2026-04-29
 
 ### Changed
