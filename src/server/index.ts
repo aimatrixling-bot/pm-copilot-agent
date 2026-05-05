@@ -5588,6 +5588,27 @@ async function main() {
         }
       }
 
+      // POST /api/skills/route - On-demand skill loading for eval runner / external callers
+      // Updates skills-config.json to enable only specified skills, then syncs symlinks.
+      if (pathname === '/api/skills/route' && request.method === 'POST') {
+        try {
+          const payload = await request.json() as { skills?: string[] };
+          const skills = payload?.skills;
+          if (!Array.isArray(skills) || skills.length === 0) {
+            return jsonResponse({ success: false, error: 'skills must be non-empty string array' }, 400);
+          }
+          const { updateSkillsForRoute, syncProjectUserConfig: syncFn } = await import('./agent-session');
+          updateSkillsForRoute(skills);
+          if (currentAgentDir) { syncFn(currentAgentDir); }
+          return jsonResponse({ success: true, enabled: skills });
+        } catch (error) {
+          return jsonResponse(
+            { success: false, error: error instanceof Error ? error.message : 'Route failed' },
+            500
+          );
+        }
+      }
+
       // GET /api/skill/sync-check - Check if there are skills to sync from Claude Code
       // NOTE: This route MUST be before /api/skill/:name to avoid being captured by the wildcard
       if (pathname === '/api/skill/sync-check' && request.method === 'GET') {

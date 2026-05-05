@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, readdirSync, symlinkSync, lstatSync, readFileSync, readlinkSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, symlinkSync, lstatSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'fs';
 import { dirname, join, resolve, sep } from 'path';
 import { createRequire } from 'module';
 import { query, getSessionMessages as sdkGetSessionMessages, type Query, type SDKUserMessage, type AgentDefinition, type HookInput, type HookJSONOutput, type PostToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
@@ -13,6 +13,7 @@ import { getImBridgeToolsContext, getImBridgeToolServer } from './tools/im-bridg
 import { getBuiltinMcp } from './tools/builtin-mcp-registry';
 import { startSocksBridge, stopSocksBridge, isSocksBridgeRunning } from './utils/socks-bridge';
 import { startFileWatcher } from './file-watcher';
+import { routeToSkill } from './skill-router';
 import { resolveAuthHeaders, onTokenChange, startTokenRefreshScheduler } from './mcp-oauth';
 // Side-effect imports: each registers itself in the builtin MCP registry
 import './tools/gemini-image-tool';
@@ -282,6 +283,37 @@ export function syncProjectUserConfig(projectDir: string): void {
       }
     } catch { /* ignore */ }
   }
+}
+
+/**
+ * Update skills-config.json to enable only the specified skills.
+ * Called before session start to implement on-demand skill loading.
+ *
+ * @param skillsToEnable - Skill directory names to enable. Empty array = enable all (reset).
+ */
+export function updateSkillsForRoute(skillsToEnable: string[]): void {
+  const pmCopilotDir = getPmCopilotUserDir();
+  const configPath = join(pmCopilotDir, 'skills-config.json');
+  const userSkillsDir = join(pmCopilotDir, 'skills');
+
+  if (!existsSync(userSkillsDir)) return;
+
+  const allSkills = readdirSync(userSkillsDir, { withFileTypes: true })
+    .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+    .map(e => e.name);
+
+  // Empty array = enable all (reset/fallback)
+  const disabled = skillsToEnable.length > 0
+    ? allSkills.filter(s => !skillsToEnable.includes(s))
+    : [];
+
+  writeFileSync(configPath, JSON.stringify({
+    seeded: allSkills,
+    disabled,
+    generation: Date.now(),
+  }, null, 2));
+
+  console.log(`[skill-route] enabled: ${skillsToEnable.length > 0 ? skillsToEnable.join(', ') : 'ALL'} (${disabled.length} disabled)`);
 }
 
 type SessionState = 'idle' | 'running' | 'error';
@@ -3676,6 +3708,9 @@ export async function resetSession(): Promise<void> {
 
   console.log('[agent] resetSession: complete, new sessionId=' + sessionId);
 
+  // Reset skill routing to load all skills for the fresh session
+  updateSkillsForRoute([]);
+
   // Pre-warm with fresh session so next message is fast
   schedulePreWarm();
   } finally {
@@ -3914,6 +3949,9 @@ export async function switchToSession(targetSessionId: string): Promise<boolean>
   hasInitialPrompt = true;
 
   console.log(`[agent] switchToSession: ready, agentDir=${agentDir}, sessionRegistered=${sessionRegistered}`);
+
+  // Reset skill routing to load all skills for the switched session
+  updateSkillsForRoute([]);
 
   // Pre-warm with resumed session so subprocess + MCP are ready before user types
   schedulePreWarm();
@@ -4311,7 +4349,11 @@ export async function enqueueUserMessage(
   if (!isSessionActive()) {
     // 无活跃 session（pre-warm 失败或首次启动）→ 先入队再启动 session
     console.log('[agent] starting session (idle -> running)');
-    preWarmFailCount = 0; // 用户主动操作重置重试计数
+    preWarmFailCount = 0; // 用户主动操作重试计数
+
+    // On-demand skill loading: route message to specific skill(s) before session starts
+    const routedSkills = routeToSkill(trimmed);
+    updateSkillsForRoute(routedSkills); // [] = load all (reset/fallback)
     messageQueue.push(queueItem);
     // CRITICAL: Defer to next event loop tick via setTimeout(0).
     // SDK query() can block the event loop for minutes during session resume

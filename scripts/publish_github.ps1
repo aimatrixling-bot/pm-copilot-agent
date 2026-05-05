@@ -4,7 +4,7 @@
 
 param()
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $ProjectDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $ProjectDir
 
@@ -13,6 +13,12 @@ function Write-Step($msg) { Write-Host "`n[C] $msg" -ForegroundColor Cyan }
 function Write-Ok($msg)   { Write-Host "  OK $msg" -ForegroundColor Green }
 function Write-Warn($msg) { Write-Host "  WARN $msg" -ForegroundColor Yellow }
 function Write-Err($msg)  { Write-Host "  ERR $msg" -ForegroundColor Red }
+
+# ── Helper: run external command, stream output, fail on non-zero exit ──
+function Invoke-Checked([string]$Name, [scriptblock]$Block) {
+    & @Block 2>&1 | ForEach-Object { Write-Host "  $_" }
+    if ($LASTEXITCODE -ne 0) { Write-Err "$Name failed (exit code $LASTEXITCODE)"; exit 1 }
+}
 
 # ── 1. Load .env ──
 Write-Step "Loading .env..."
@@ -60,15 +66,7 @@ if ($serverDist.Length -lt 100) {
 Write-Ok "Server + Plugin Bridge built ($([math]::Round($serverDist.Length / 1KB, 0)) KB)"
 
 Write-Step "Building Tauri app (this takes several minutes)..."
-$prevEAP = $ErrorActionPreference
-$ErrorActionPreference = "Continue"
-bun run tauri:build 2>&1 | ForEach-Object { Write-Host "  $_" }
-$tauriExit = $LASTEXITCODE
-$ErrorActionPreference = $prevEAP
-if ($tauriExit -ne 0) {
-    Write-Err "Tauri build failed (exit code $tauriExit)"
-    exit 1
-}
+Invoke-Checked "Tauri build" { bun run tauri:build }
 Write-Ok "Build complete"
 
 # ── 4. Verify artifacts ──
@@ -105,12 +103,12 @@ $Tag = "v$Version"
 Write-Step "Creating GitHub Release $Tag..."
 
 # Check if release already exists
-$existingRelease = gh release view $Tag 2>&1
+gh release view $Tag 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) {
     Write-Warn "Release $Tag already exists. Deleting and recreating..."
     gh release delete $Tag --yes 2>&1 | Out-Null
-    git tag -d $Tag 2>$null
-    git push origin :refs/tags/$Tag 2>$null
+    git tag -d $Tag 2>&1 | Out-Null
+    git push origin ":refs/tags/$Tag" 2>&1 | Out-Null
 }
 
 # Rename files for upload (replace spaces with hyphens)
@@ -125,16 +123,11 @@ Copy-Item $NsisZip.FullName (Join-Path $TempDir $UploadZipName) -Force
 
 $ReleaseNotes = "PM Copilot v$Version`n`nSee CHANGELOG.md for details."
 
-gh release create $Tag `
+Invoke-Checked "Create GitHub Release" { gh release create $Tag `
     (Join-Path $TempDir $UploadSetupName) `
     (Join-Path $TempDir $UploadZipName) `
     --title $Tag `
-    --notes $ReleaseNotes 2>&1
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Err "Failed to create GitHub Release"
-    exit 1
-}
+    --notes $ReleaseNotes }
 Write-Ok "Release created: https://github.com/aimatrixling-bot/pm-copilot-agent/releases/tag/$Tag"
 
 # Clean temp
@@ -159,7 +152,7 @@ Write-Host "  Manifest URL: $DownloadUrl"
 # Clone gh-pages, update manifest, push
 $GhPagesDir = Join-Path $env:TEMP "pm-copilot-gh-pages"
 if (Test-Path $GhPagesDir) { Remove-Item $GhPagesDir -Recurse -Force }
-git clone --branch gh-pages --single-branch (git remote get-url origin) $GhPagesDir 2>&1 | Out-Null
+Invoke-Checked "Clone gh-pages" { git clone --branch gh-pages --single-branch (git remote get-url origin) $GhPagesDir }
 
 $UpdateDir = Join-Path $GhPagesDir "update"
 if (-not (Test-Path $UpdateDir)) { New-Item -ItemType Directory -Path $UpdateDir | Out-Null }
@@ -168,8 +161,8 @@ $Manifest | Out-File -FilePath (Join-Path $UpdateDir "windows-x86_64.json") -Enc
 
 Set-Location $GhPagesDir
 git add -A
-git commit -m "update: v$Version manifest" 2>&1 | Out-Null
-git push origin gh-pages 2>&1 | Out-Null
+Invoke-Checked "Commit manifest" { git commit -m "update: v$Version manifest" }
+Invoke-Checked "Push gh-pages" { git push origin gh-pages }
 Set-Location $ProjectDir
 
 Remove-Item $GhPagesDir -Recurse -Force

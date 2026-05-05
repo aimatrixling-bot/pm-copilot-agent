@@ -154,7 +154,28 @@ pre-warm 就是最终 session。新增配置同步端点时，确保 `currentXxx
 - 提交前 MUST：`npm run typecheck`，检查当前分支
 - 分支：`dev/x.x.x` → `main`。MUST NOT 在 main 直接提交
 - Commit：Conventional Commits
-- 发布：更新 CHANGELOG → `npm version` → `./build_dev.sh` → push tag
+
+## 发布流程（MUST 每次完整执行）
+
+用户要求发布新版本时，MUST 按以下清单完整执行，不跳步、不遗漏：
+
+| # | 步骤 | 命令/操作 | 自动化 |
+|---|------|-----------|--------|
+| 1 | bump 版本 | `package.json` + `tauri.conf.json` + `Cargo.toml` + `commands.rs` (`ADMIN_AGENT_VERSION`) | 手动 |
+| 2 | 更新 CHANGELOG | 添加版本条目 | 手动 |
+| 3 | commit + tag | `git commit` + `git tag vX.Y.Z` + `git push` | 手动 |
+| 4 | 构建安装包 | `.\scripts\publish_github.ps1` | **一键脚本** |
+| 5 | 同步 Skills 到运行时 | cp `bundled-agents/pm-copilot/.claude/skills/*` → `~/.pm-copilot/skills/` | 手动 |
+| 6 | 同步 Skills 到 npm | `bash sync-and-publish.sh`（pm-copilot-skills 仓库） | 手动 |
+
+**步骤 4 已自动化**：`publish_github.ps1` 一键完成构建 → 签名 → GitHub Release → gh-pages 更新清单 → 清理旧 artifacts。
+
+## gh-pages 更新机制
+
+- **模式**：GitHub Pages `build_type: legacy`（直接从分支部署，无需 Actions workflow）
+- **行为**：推送 `gh-pages` 分支后 GitHub 自动部署
+- **清单路径**：`gh-pages` 分支 `update/windows-x86_64.json`
+- **脚本自动处理**：`publish_github.ps1` 步骤 6 自动 clone gh-pages → 更新 manifest → push
 
 ## 深度文档
 
