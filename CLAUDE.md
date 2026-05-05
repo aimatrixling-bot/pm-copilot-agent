@@ -42,7 +42,7 @@ KB 根路径：`D:\Max Brain for AI Copilot\`。仅在生成 PM 交付物（PRD/
 ## 项目结构
 
 - `src/renderer/` — React 前端
-- `src/server/` — Bun 后端 Sidecar
+- `src/server/` — Bun 后端 Sidecar（含 `skill-router.ts` 按需加载路由）
 - `src-tauri/` — Rust 桌面层
 - `bundled-agents/pm-copilot/` — PM Agent（CLAUDE.md 路由器 + agents/ + skills/）
 - `specs/` — 设计文档

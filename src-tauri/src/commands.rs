@@ -724,7 +724,7 @@ pub fn cmd_copy_folder_to_templates(
 
 // ============= Admin Agent Sync =============
 
-const ADMIN_AGENT_VERSION: &str = "pm-17";
+const ADMIN_AGENT_VERSION: &str = "pm-18";
 
 /// Merge bundled admin agent files into ~/.pm-copilot/
 /// Version-gated: only runs when ADMIN_AGENT_VERSION changes.

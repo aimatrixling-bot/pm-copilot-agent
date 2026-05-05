@@ -286,6 +286,18 @@ export function syncProjectUserConfig(projectDir: string): void {
 }
 
 /**
+ * Flag to skip routeToSkill() on next enqueueUserMessage() call.
+ * Set by /api/skills/route endpoint when skills are externally configured
+ * (e.g., by eval runner). Prevents agent's internal routing from overwriting
+ * the externally set skill configuration.
+ */
+export let skipNextRouting = false;
+
+export function setSkipNextRouting(value: boolean): void {
+  skipNextRouting = value;
+}
+
+/**
  * Update skills-config.json to enable only the specified skills.
  * Called before session start to implement on-demand skill loading.
  *
@@ -405,6 +417,7 @@ let agentDir = '';
 let hasInitialPrompt = false;
 let sessionState: SessionState = 'idle';
 let querySession: Query | null = null;
+let queryAbortController: AbortController | null = null;
 let isProcessing = false;
 let shouldAbortSession = false;
 // Deferred config restart: when MCP/Agents config changes during an active turn,
@@ -696,6 +709,8 @@ function abortPersistentSession(): void {
   }
   // 强制 subprocess 产出消息/错误，解除 for-await 阻塞
   querySession?.interrupt().catch(() => {});
+  // Also abort via AbortController for clean SDK cancellation
+  try { queryAbortController?.abort(); } catch {}
 }
 
 // ===== Interaction Scenario (unified system prompt) =====
@@ -4352,8 +4367,13 @@ export async function enqueueUserMessage(
     preWarmFailCount = 0; // 用户主动操作重试计数
 
     // On-demand skill loading: route message to specific skill(s) before session starts
-    const routedSkills = routeToSkill(trimmed);
-    updateSkillsForRoute(routedSkills); // [] = load all (reset/fallback)
+    // Skip routing if skills were externally configured via /api/skills/route
+    if (!skipNextRouting) {
+      const routedSkills = routeToSkill(trimmed);
+      updateSkillsForRoute(routedSkills); // [] = load all (reset/fallback)
+    } else {
+      skipNextRouting = false; // Consume flag — only skip once
+    }
     messageQueue.push(queueItem);
     // CRITICAL: Defer to next event loop tick via setTimeout(0).
     // SDK query() can block the event loop for minutes during session resume
@@ -4976,6 +4996,9 @@ async function startStreamingSession(preWarm = false): Promise<void> {
       : { type: 'disabled' as const };
 
     // Build common query options (shared between normal start and "already in use" fallback)
+    // AbortController for SDK query — allows clean cancellation of running queries
+    queryAbortController = new AbortController();
+
     const commonQueryOptions = {
       enableFileCheckpointing: true,
       thinking: thinkingConfig,
@@ -4995,6 +5018,7 @@ async function startStreamingSession(preWarm = false): Promise<void> {
       // via setPermissionMode('bypassPermissions'). Without this flag at query creation time,
       // the SDK silently ignores the mode switch and keeps calling canUseTool.
       allowDangerouslySkipPermissions: true,
+      abortController: queryAbortController,
       model: currentModel, // Use currently selected model
       pathToClaudeCodeExecutable: resolveClaudeCodeCli(),
       executable: 'bun' as const,

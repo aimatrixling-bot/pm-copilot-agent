@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.7] - 2026-05-05
+
+### Changed
+
+- **Eval Runner 稳定性**: 修复 skill 路由竞态（R1）— 改用 `/api/skills/route` API 替代直接文件写入，新增 `skipNextRouting` 标志防止 `routeToSkill()` 覆盖
+- **Eval Runner 超时保护**: 新增进度检测（3 分钟无输出提前终止）+ deadline 到期强制 abort（R3）
+- **SKILL.md 内容压缩**（R2）: 10 个 Skill 的 Hard Bans + Delivery Checklist 移至 `references/` 目录，每个 SKILL.md 平均减少 50-80 行
+- **Agent 超时保护**: SDK `query()` 添加 `AbortController`，`abortPersistentSession()` 时同步 abort
+- `ADMIN_AGENT_VERSION` bump: pm-17 → pm-18
+
+---
+
 ## [0.2.6] - 2026-05-05
 
 ### Changed

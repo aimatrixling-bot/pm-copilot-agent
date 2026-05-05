@@ -5590,17 +5590,19 @@ async function main() {
 
       // POST /api/skills/route - On-demand skill loading for eval runner / external callers
       // Updates skills-config.json to enable only specified skills, then syncs symlinks.
+      // Empty skills array = reset to load all skills.
       if (pathname === '/api/skills/route' && request.method === 'POST') {
         try {
           const payload = await request.json() as { skills?: string[] };
           const skills = payload?.skills;
-          if (!Array.isArray(skills) || skills.length === 0) {
-            return jsonResponse({ success: false, error: 'skills must be non-empty string array' }, 400);
+          if (!Array.isArray(skills)) {
+            return jsonResponse({ success: false, error: 'skills must be a string array' }, 400);
           }
-          const { updateSkillsForRoute, syncProjectUserConfig: syncFn } = await import('./agent-session');
+          const { updateSkillsForRoute, syncProjectUserConfig: syncFn, setSkipNextRouting } = await import('./agent-session');
           updateSkillsForRoute(skills);
+          setSkipNextRouting(true); // Prevent enqueueUserMessage from overwriting
           if (currentAgentDir) { syncFn(currentAgentDir); }
-          return jsonResponse({ success: true, enabled: skills });
+          return jsonResponse({ success: true, enabled: skills.length > 0 ? skills : 'all' });
         } catch (error) {
           return jsonResponse(
             { success: false, error: error instanceof Error ? error.message : 'Route failed' },
