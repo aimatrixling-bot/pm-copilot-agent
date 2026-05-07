@@ -19,6 +19,8 @@ import { resolveAuthHeaders, onTokenChange, startTokenRefreshScheduler } from '.
 import './tools/gemini-image-tool';
 import './tools/edge-tts-tool';
 import { generativeUiServer } from './tools/generative-ui-tool';
+import { taskToolsServer } from './tools/task-tools';
+import { createPostCompactHook } from './context-compact';
 
 import type { ToolInput } from '../renderer/types/chat';
 import { parsePartialJson } from '../shared/parsePartialJson';
@@ -292,6 +294,9 @@ export function syncProjectUserConfig(projectDir: string): void {
  * the externally set skill configuration.
  */
 export let skipNextRouting = false;
+
+/** Skill names suggested by the keyword router for the current message (hints, not hard constraints) */
+let pendingSuggestedSkills: string[] = [];
 
 export function setSkipNextRouting(value: boolean): void {
   skipNextRouting = value;
@@ -1418,6 +1423,10 @@ async function buildSdkMcpServers(): Promise<Record<string, SdkMcpServerConfig |
     result['generative-ui'] = generativeUiServer as typeof cronToolsServer;
     console.log('[agent] Added generative-ui MCP server');
   }
+
+  // Add persistent task tools (always available — core Harness infrastructure)
+  result['task-tools'] = taskToolsServer as typeof cronToolsServer;
+  console.log('[agent] Added task-tools MCP server');
 
   // --- Pattern 2: Builtin registry MCPs (in-process, user-toggled) ---
   for (const server of servers) {
@@ -4370,9 +4379,11 @@ export async function enqueueUserMessage(
     // Skip routing if skills were externally configured via /api/skills/route
     if (!skipNextRouting) {
       const routedSkills = routeToSkill(trimmed);
-      updateSkillsForRoute(routedSkills); // [] = load all (reset/fallback)
+      pendingSuggestedSkills = routedSkills; // Store as hints for system prompt
+      updateSkillsForRoute(routedSkills);    // [] = load all (reset/fallback)
     } else {
       skipNextRouting = false; // Consume flag — only skip once
+      pendingSuggestedSkills = [];
     }
     messageQueue.push(queueItem);
     // CRITICAL: Defer to next event loop tick via setTimeout(0).
@@ -5042,6 +5053,12 @@ async function startStreamingSession(preWarm = false): Promise<void> {
             s => s.id === 'playwright' && (s.args ?? []).some((a: string) => /^--caps=.*\bstorage\b/.test(a))
           ),
           generativeUiEnabled: currentScenario.type === 'desktop',
+          suggestedSkills: pendingSuggestedSkills,
+          availableAgents: currentAgentDefinitions
+            ? Object.fromEntries(
+                Object.entries(currentAgentDefinitions).map(([name, def]) => [name, def.description ?? ''])
+              )
+            : undefined,
         }),
       },
       cwd: agentDir,
@@ -5182,6 +5199,10 @@ async function startStreamingSession(preWarm = false): Promise<void> {
               return { continue: true };
             },
           ],
+        }],
+        // PostCompact hook: save transcript when SDK compacts context
+        PostCompact: [{
+          hooks: [createPostCompactHook(effectiveSdkSessionId)],
         }],
       },
     };

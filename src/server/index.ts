@@ -4711,6 +4711,19 @@ async function main() {
         }
       }
 
+      // GET /api/ask-user-question/pending - List pending AskUserQuestion requests (for eval automation)
+      if (pathname === '/api/ask-user-question/pending' && request.method === 'GET') {
+        try {
+          const { getPendingInteractiveRequests } = await import('./agent-session');
+          const all = getPendingInteractiveRequests();
+          const pending = all.filter(r => r.type === 'ask-user-question:request');
+          return jsonResponse({ pending });
+        } catch (error) {
+          console.error('[api/ask-user-question/pending] Error:', error);
+          return jsonResponse({ success: false, error: String(error) }, 500);
+        }
+      }
+
       // POST /api/ask-user-question/respond - Handle user's answers to AskUserQuestion
       if (pathname === '/api/ask-user-question/respond' && request.method === 'POST') {
         try {

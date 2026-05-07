@@ -58,6 +58,24 @@ const TMPL_BROWSER_STORAGE_STATE = `<pm-copilot-browser-storage-instructions>
 当你在浏览器中执行了登录操作或用户帮你完成了登录（输入账号密码、OAuth 授权、扫码登录等），必须在登录成功后**立即**调用 browser_storage_state 工具将登录状态保存到 ~/.pm-copilot/browser-storage-state.json，然后再继续执行后续任务。这样即使后续任务中断或会话异常终止，登录态也不会丢失，后续对话可以复用。
 </pm-copilot-browser-storage-instructions>`;
 
+const TMPL_SKILL_SUGGESTIONS = `<pm-copilot-skill-suggestions>
+根据关键词匹配，以下 Skill 可能与当前用户意图相关：{{skillList}}
+你可以自主决定是否调用这些 Skill，或选择更合适的方式处理用户请求。
+</pm-copilot-skill-suggestions>`;
+
+const TMPL_SUB_AGENTS = `<pm-copilot-sub-agents>
+你可以通过 Task 工具将子任务分派给专业子 Agent。每个子 Agent 运行在独立上下文中，完成后返回结构化摘要。
+
+可用子 Agent：
+{{agentList}}
+
+使用原则：
+- 研究类任务（竞品分析、市场调研、技术选型）→ 分派给 pm-researcher
+- 子 Agent 完成后会返回摘要，你可以基于摘要继续主对话
+- 不要手动拼装子 Agent 的输出格式，直接使用返回的摘要
+- 简单查询不需要分派，直接回答即可
+</pm-copilot-sub-agents>`;
+
 // ===== Variable replacement =====
 // Supports {{varName}} simple substitution + {{#if varName}}...{{else}}...{{/if}} conditional blocks
 
@@ -80,6 +98,10 @@ export interface SystemPromptOptions {
   playwrightStorageEnabled?: boolean;
   /** Whether Generative UI (widget_read_me + <widget> tags) is enabled in this session */
   generativeUiEnabled?: boolean;
+  /** Skill names suggested by the keyword router (hints, not hard constraints) */
+  suggestedSkills?: string[];
+  /** Available sub-agents for Task dispatch (name → description) */
+  availableAgents?: Record<string, string>;
 }
 
 export function buildSystemPromptAppend(scenario: InteractionScenario, options?: SystemPromptOptions): string {
@@ -127,6 +149,20 @@ export function buildSystemPromptAppend(scenario: InteractionScenario, options?:
   // L3: Browser storage state save instruction (when Playwright with --caps=storage is active)
   if (options?.playwrightStorageEnabled) {
     parts.push(TMPL_BROWSER_STORAGE_STATE);
+  }
+
+  // L3: Skill suggestions from keyword router (hints, not hard constraints)
+  if (options?.suggestedSkills && options.suggestedSkills.length > 0) {
+    const skillList = options.suggestedSkills.map(s => `「${s}」`).join('、');
+    parts.push(renderTemplate(TMPL_SKILL_SUGGESTIONS, { skillList }));
+  }
+
+  // L3: Sub-agent awareness for Task dispatch
+  if (options?.availableAgents && Object.keys(options.availableAgents).length > 0) {
+    const agentList = Object.entries(options.availableAgents)
+      .map(([name, desc]) => `- **${name}**: ${desc}`)
+      .join('\n');
+    parts.push(renderTemplate(TMPL_SUB_AGENTS, { agentList }));
   }
 
   return parts.join('\n\n');

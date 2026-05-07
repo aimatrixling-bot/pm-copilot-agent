@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.1] - 2026-05-07
+
+### Added
+
+- **持久任务系统**: `task-manager.ts` + `task-tools.ts` — 文件持久化 JSON 任务图，支持 `blockedBy` 依赖边，跨 session 存活
+- **三层 Context Compact**: `context-compact.ts` — micro（旧 tool_result 压缩）/ auto（80% context 触发）/ manual（用户指令）
+- **pm-researcher Spawn**: 独立 Agent session，研究类意图自动 Spawn，摘要回传主 Agent
+- **Skill 元数据表**: CLAUDE.md 内嵌 30 个 Skill 的触发信号 + I/O 描述，模型自主决策路由
+
+### Changed
+
+- **CLAUDE.md 大幅精简**: 576 → ~280 行，删除过程规则，保留领域知识和核心约束
+- **skill-router.ts 降级为 fallback**: 从"强制路由"改为"建议路由"，不再控制 symlink 可见性
+- **system-prompt.ts 增强**: 接受 suggested skills 注入，支持模型自主路由 + fallback 建议
+- `ADMIN_AGENT_VERSION` bump: pm-19 → pm-20
+
+### Removed
+
+- **Bundled Superpowers Skills**: 删除 docx/xlsx/summarize/ultra-research/skill-creator 等 ~170 文件，减少安装包体积
+
+---
+
 ## [0.3.0] - 2026-05-07
 
 ### Added
