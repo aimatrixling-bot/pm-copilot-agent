@@ -1,6 +1,6 @@
 # PM Copilot 技术架构
 
-> 最后更新：v0.1.60 (2026-04-07)
+> 最后更新：v0.3.0 (2026-05-07)
 
 ## 概述
 
@@ -382,6 +382,153 @@ Cmd+W 层级关闭：Overlay → 分屏面板 → Tab，高 z-index 优先。
 - **App 集成**: `App.tsx` 的 Cmd+W handler：`if (!dismissTopmost()) closeCurrentTab()`
 - **浏览器联动**: `hasOverlayLayer()` 导出给 `useBrowserOverlayGuard`，当有 z-index > 0 的注册层时自动隐藏原生 Webview
 
+### 14. Skill 按需加载 (v0.2.6)
+
+**问题**：30 个 PM Skill 的完整内容（Hard Bans + Delivery Checklist + references）作为 system prompt 常驻加载，消耗 ~147K tokens，导致 context 压力大、响应慢。
+
+**方案**：`src/server/skill-router.ts` 实现关键词匹配路由，仅加载当前意图匹配的 Skill。
+
+| 概念 | 说明 |
+|------|------|
+| **路由规则** | 28 条关键词匹配规则，覆盖全部 30 个 Skill |
+| **匹配方式** | 用户消息 → 关键词扫描 → 命中规则 → 返回 Skill 名称数组 |
+| **加载机制** | Sidecar 收到 Skill 列表 → 仅拼接对应 SKILL.md 到 system prompt |
+| **Token 节省** | ~147K → ~25-30K tokens（约 80% 降低） |
+
+**路由优先级**：
+1. 用户显式指定 Skill 名（如 `/pm-prd`）→ 直接加载
+2. 关键词匹配命中 → 加载匹配的 Skill
+3. 无匹配 → 全量加载（降级策略）
+
+**关键文件**：
+- `src/server/skill-router.ts` — 路由规则定义
+- `src/server/skill-config.ts` — Skill 配置管理（`updateSkillsForRoute()`）
+- `bundled-agents/pm-copilot/CLAUDE.md` — 意图路由表（Agent 行为层）
+
+**Session 生命周期集成**：
+- `resetSession()` 和 `switchToSession()` 调用 `updateSkillsForRoute([])` 重置路由
+- `enqueueUserMessage` 中 `routeToSkill()` 返回空数组时重置为全量加载
+
+### 15. Eval-V3 评估体系 (v0.2.4+)
+
+行为正确性评估框架，测试 PM Copilot 的 Agent 行为（路由、边界控制、产出质量等），不测试模型能力。
+
+**架构**：
+
+```
+validation/eval-v3/
+├── run-client-eval.ts          # 主 Runner（客户端驱动）
+├── golden-datasets/            # 标准答案集
+│   ├── intent-routing/         # 12 cases (IR_001-IR_012)
+│   ├── boundary-control/       # 3 cases (BC_001-BC_003)
+│   ├── artifact-quality/       # 3+ cases (AQ_001+)
+│   ├── workflow-orchestration/ # 3+ cases
+│   ├── stateful-behavior/      # 3+ cases
+│   └── user-journey/           # 2+ cases
+├── fixtures/                   # 测试夹具
+└── results-client-{model}/     # 运行结果
+```
+
+**6 Track / 26 Case**：
+
+| Track | 覆盖能力 | Smoke P0 Case |
+|-------|---------|---------------|
+| intent-routing | 意图识别、路由准确性 | IR_001, IR_004, IR_005, IR_006, IR_009, IR_010 |
+| boundary-control | 能力边界、信息不足 | BC_001, BC_002 |
+| artifact-quality | 保真度控制、输出格式 | AQ_001 |
+| workflow-orchestration | 工作流阶段连贯性 | — |
+| stateful-behavior | 跨会话记忆 | — |
+| user-journey | 端到端流程 | — |
+
+**Runner 特性**：
+- 客户端驱动：通过 PM Copilot HTTP API 发送消息，确保完整 Agent 管道被测试
+- 端口自动检测：扫描 31415/31416/3456/3457/3000
+- 进度保护：3 分钟无输出提前终止 + 10 分钟 deadline 强制 abort
+- 结果保存：`_summary.json`（byTrack + byBM 汇总）+ 每 case 独立 `_result.json`
+
+详见 [Eval-v3 Smoke Pack 操作指南](../guides/eval-v3-smoke-guide.md)。
+
+### 16. SKILL.md 内容压缩 (v0.2.7)
+
+**问题**：10 个 Skill 的 SKILL.md 包含大量 Hard Bans（硬禁令表）和 Delivery Checklist（交付检查清单），导致单文件过长，按需加载时仍消耗过多 tokens。
+
+**方案**：将 Hard Bans + Delivery Checklist 移至各 Skill 的 `references/` 目录，SKILL.md 保留核心流程和触发信号。
+
+**压缩效果**：
+
+| 内容 | 压缩前位置 | 压缩后位置 | SKILL.md 减少行数 |
+|------|-----------|-----------|-----------------|
+| Hard Bans（5 条负面约束） | SKILL.md 内联 | `references/hard-bans.md` | ~15-20 行 |
+| Delivery Checklist | SKILL.md 内联 | `references/delivery-checklist.md` | ~30-50 行 |
+
+**已压缩的 10 个 Skill**：pm-comp, pm-data-analysis, pm-persona, pm-problem-frame, pm-tech-spec, pm-eng-request, pm-discovery, pm-writer-pipeline, pm-wireframe, pm-retro
+
+**设计原则**：
+- SKILL.md 是 Skill 的"入口"——包含触发信号、核心流程、输出格式
+- `references/` 是 Skill 的"详细参考"——按需加载，不增加常驻 token 消耗
+- Agent 执行 Skill 时，可选择性读取 `references/` 中的详细指导
+
+### 17. Agent AbortController 超时保护 (v0.2.7)
+
+**问题**：SDK `query()` 调用在某些场景下（模型推理循环、网络中断）不返回，导致 Session 永久挂起。
+
+**方案**：在 `abortPersistentSession()` 中同步 abort SDK `query()` 的 `AbortController`。
+
+```typescript
+// agent-session.ts
+const abortController = new AbortController();
+
+// 传递给 SDK query()
+const stream = sdk.query({
+  ...params,
+  signal: abortController.signal,
+});
+
+// abortPersistentSession() 同时 abort SDK
+function abortPersistentSession() {
+  abortController.abort();  // 中断 SDK subprocess
+  shouldAbortSession = true;
+}
+```
+
+**与 Eval Runner 超时保护的协同**：
+- Eval Runner 层：3 分钟无输出提前终止 + 10 分钟 deadline（外部保护）
+- Agent 层：AbortController 中断 SDK subprocess（内部保护）
+- 双层保护确保不会出现永久挂起的 Session
+
+### 18. Quality Gates 三级门控
+
+PM Copilot 的产出质量保障机制，分三级自动执行：
+
+| 级别 | 触发时机 | 检查内容 | 实现方式 |
+|------|---------|---------|---------|
+| **L1 自检** | 每次 Skill 产出前 | 格式合规、标注完整、Iron Law 通过 | Agent 行为（CLAUDE.md 规则） |
+| **L2 交叉检查** | 特定节点自动触发 | 跨文档一致性（Problem ⊆ Persona, PRD ⊆ Tech Spec 等） | Agent 行为（CLAUDE.md 规则） |
+| **L3 Coaching** | 关键节点触发 | 用问题引导思考（非直接给答案） | v2 规划（依赖 Fork/Spawn） |
+
+**L2 触发节点**：
+- pm-feature-cycle Phase 2→3 之间（PRD 完成后）
+- pm-writer-pipeline 每阶段质量门
+- 任何 Skill 产出后，如果工作目录中存在 ≥2 个已有 PM 产出物
+
+**L2 检查项**：
+- Problem Statement 目标用户 ⊆ Persona 画像覆盖
+- RICE P0 功能 ⊆ PRD Feature Scope
+- PRD 成功指标 ⊆ 发布计划监控指标
+- 技术规格范围 = PRD Feature Scope
+- User Journey ⊆ In Scope（内部一致性）
+
+**L3 Coaching vs Review**：
+
+| 模式 | 触发信号 | 行为 | Entry Mode |
+|------|---------|------|-----------|
+| Coaching | "帮我看看" | 用问题引导思考 | Guided |
+| Review | "帮我审查" | 结构化评审，给出判断 | Expert |
+
+当前 L3 通过 pm-critique Skill 实现，v2 计划中将通过 Fork/Spawn 子 Agent 提供独立视角。
+
+---
+
 ## 通信流程
 
 ### SSE 流式事件
@@ -524,3 +671,5 @@ Tab2 apiPost() ──► getSessionPort(session_456) ──► Rust proxy ──
 | [Windows 平台适配](./windows_platform_guide.md) | PATH 问题、控制台窗口、npm 兼容 |
 | [Multi-Agent Runtime](./multi_agent_runtime.md) | 外部 Runtime 抽象层、CC/Codex 协议、会话管理、门控链路 |
 | [设计系统](../guides/design_guide.md) | Token/组件/页面规范 |
+| [Eval-v3 Smoke Pack 指南](../guides/eval-v3-smoke-guide.md) | 评估框架运行步骤、Smoke Pack 组成、判定标准 |
+| [集中 Backlog](../../specs/backlog.md) | 所有 Pending 项的单一来源 |

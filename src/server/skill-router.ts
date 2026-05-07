@@ -204,6 +204,12 @@ const ROUTING_RULES: RoutingRule[] = [
     patterns: ['简历', '面试', 'PM求职', 'job search', 'cover letter', '求职信', '岗位匹配', 'JD分析'],
     skills: ['pm-job-search'],
   },
+
+  // Gap analysis
+  {
+    patterns: ['gap分析', '偏差诊断', '战略偏差', '方向对不对', '战略对齐', 'gap analysis', '方向校准', '识别差距', '是不是偏了'],
+    skills: ['pm-gap-analysis'],
+  },
 ];
 
 // ─── Public API ───

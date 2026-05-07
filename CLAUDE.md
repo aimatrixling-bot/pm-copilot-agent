@@ -1,6 +1,6 @@
 # PM Copilot — Desktop AI PM Agent
 
-面向 PM 的桌面端 AI Agent（Apache-2.0）。Tauri v2 + Claude Agent SDK，29 个 PM Skill + 23 本书方法论 KB。使用 Conventional Commits，不提交敏感信息。
+面向 PM 的桌面端 AI Agent（Apache-2.0）。Tauri v2 + Claude Agent SDK，30 个 PM Skill + 23 本书方法论 KB。使用 Conventional Commits，不提交敏感信息。
 
 ## PM OS — 产品行为
 
@@ -23,7 +23,7 @@ KB 根路径：`D:\Max Brain for AI Copilot\`。仅在生成 PM 交付物（PRD/
 - **pm-researcher**（v2 计划，Spawn）— 独立研究
 - **pm-reviewer**（v2 计划，Spawn）— 质量审查
 
-当前所有功能通过 pm-copilot 主 Agent + 29 个 PM Skill 路由实现。路由表见 `bundled-agents/pm-copilot/CLAUDE.md`。
+当前所有功能通过 pm-copilot 主 Agent + 30 个 PM Skill 路由实现。路由表见 `bundled-agents/pm-copilot/CLAUDE.md`。
 
 ### 交付质量自检
 

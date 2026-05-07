@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-05-07
+
+### Added
+
+- **Eval 操作指南**: `specs/guides/eval-v3-smoke-guide.md` — Smoke Pack 概览、运行步骤、判定标准
+- **集中 Backlog**: `specs/backlog.md` — P0/P1/P2 优先级管理，汇总全部 Pending 项
+- **模型兼容性矩阵**: `specs/guides/model-compatibility-matrix.md` — 9 个 Provider 测试模板（待手动测试）
+- **快速入门指南**: `specs/guides/quick-start-guide.md` — 3 分钟上手，常用命令速查
+- **PDF/DOCX 导出技术规格**: `specs/prd/export-feature-spec.md` — 5 方案对比，4 Phase 实现路径（仅规划）
+- **Skill 质量反馈 Issue 模板**: `.github/ISSUE_TEMPLATE/skill_feedback.md`
+
+### Changed
+
+- **Onboarding 双层改进**: Agent CLAUDE.md 新增 3 步引导规则（自我介绍 → 推荐任务 → 路由），替代 v2 计划占位符
+- **架构文档更新**: `architecture.md` 新增 5 个章节（Skill 按需加载、Eval-V3、SKILL.md 压缩、AbortController、Quality Gates），版本 v0.1.60 → v0.3.0
+- **README_EN.md 修复**: 版本号对齐、新增 Calibration 行、显式 30 PM Skills 数量
+- **Skill 数量统一**: 29 → 30（pm-gap-analysis 正式纳入计数），全部文档同步更新
+- `ADMIN_AGENT_VERSION` bump: pm-18 → pm-19
+
+---
+
 ## [0.2.7] - 2026-05-05
 
 ### Changed
@@ -26,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Skill 按需加载**: 新增 `skill-router.ts`（27 条路由规则覆盖全部 29 Skill），system prompt 从 ~147K 降至 ~25-30K tokens
+- **Skill 按需加载**: 新增 `skill-router.ts`（28 条路由规则覆盖全部 29 Skill），system prompt 从 ~147K 降至 ~25-30K tokens
 - **Iron Law BM-2 信息充足性分级**: 区分充足/部分缺失/严重不足三档，禁止"只问不做"，追问不超过回复篇幅 30%
 - **Pre-flight 内部化**: 简单/标准任务不输出 Pre-flight，复杂任务一句话说明执行路径
 - **Iron Law #11**: 关键判断不基于未确认假设，给出分支方案覆盖主要可能性
