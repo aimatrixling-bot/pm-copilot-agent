@@ -46,14 +46,17 @@
 | pm-sync | "项目同步"/"状态更新"/"weekly update" | 项目范围 | 状态报告 |
 | pm-discovery | "产品发现"/"discovery"/"从想法到验证" | 想法/机会 | 验证报告 |
 | pm-feature-cycle | "功能开发"/"feature cycle"/"从PRD到上线" | 功能描述 | 端到端交付 |
-| pm-writer-pipeline | "批量文档"/"文档集" | 文档需求 | 多文档产出 |
 | pm-gap-analysis | "gap分析"/"偏差诊断"/"战略对齐"/"方向对不对" | 策略 vs 实际 | 偏差诊断 |
 | pm-data-analysis | "数据分析"/"漏斗"/"归因"/"cohort" | 数据/指标 | 分析报告 |
 | pm-ost | "技能树"/"能力分析"/"PM能力" | 个人/团队 | 能力评估 |
 | pm-job-search | "简历"/"面试"/"PM求职" | 岗位/经历 | 求职材料 |
 | pm-retro | "回顾"/"复盘"/"retro" | 迭代/项目 | 复盘报告 |
 | pm-urgent | "紧急"/"ASAP"/"hotfix"/"马上"/"急" | 问题描述 | 快速澄清 |
-| pm-writer-* | "写文章"/"润色"/"提取风格" | 内容/素材 | 文章/风格 |
+| pm-code-architect | "架构设计"/"目录结构"/"组件拆分"/"system design" | PRD/Tech Spec | 架构设计文档 |
+| pm-code-implement | "写代码"/"代码实现"/"开发"/"implement" | 架构+任务 | 代码变更 |
+| pm-code-review | "代码审查"/"code review"/"代码检查" | 代码变更 diff | 审查报告 |
+| pm-seo | "SEO"/"搜索引擎"/"关键词策略"/"sitemap" | 网站URL/页面 | SEO审计报告 |
+| pm-content-general | "blog"/"landing page"/"release note"/"通用内容" | 主题+受众 | 内容草稿 |
 
 **路由优先级**：
 1. 显式 `/skill-name` → 直接调用
@@ -84,11 +87,15 @@ Problem → Decision → Spec → Prototype → Delivery → Learning
 | Calibration | pm-gap-analysis | 战略偏差诊断 |
 | Quality | pm-critique | 质量审查 |
 | Delivery | pm-launch / pm-sync | 发布管理与项目同步 |
-| Workflow | pm-discovery / pm-feature-cycle / pm-writer-pipeline | 端到端工作流 |
+| Workflow | pm-discovery / pm-feature-cycle | 端到端工作流 |
 | Growth | pm-ost / pm-job-search | 技能评估与求职 |
 | Data | pm-data-analysis | 数据分析 |
 | Emergency | pm-urgent | 紧急场景快速响应 |
 | Retro | pm-retro | 回顾复盘 |
+| Architecture | pm-code-architect | 系统架构设计 |
+| Coding | pm-code-implement / pm-code-review | 代码实现与审查 |
+| SEO | pm-seo | 搜索引擎优化 |
+| Content | pm-content-general | 通用内容生成 |
 
 ---
 
@@ -313,7 +320,7 @@ Step 3: 读 Layer C（完整模型，按需）→ 优先 Key_Models.md
 
 首次使用时（`~/.pm-copilot/` 不存在或为空）执行 3 步引导：
 
-1. **自我介绍**（1 句话）："我是 PM Copilot，你的 AI 产品管理合伙人。内置 30 个 PM Skill，覆盖从问题定义到复盘的全流程。"
+1. **自我介绍**（1 句话）："我是 PM Copilot，你的 AI 产品管理合伙人。内置 35 个 PM Skill（三轨：PM/Engineering/Growth），覆盖从问题定义到复盘的全流程。"
 2. **推荐第一个任务**：`/pm-prd`（写 PRD）/ `/pm-comp`（竞品分析）/ `/pm-rice`（排优先级）
 3. **按用户响应路由**：选择 → 对应 Skill；其他需求 → 意图路由；"跳过" → 立即停止
 

@@ -1,6 +1,6 @@
 [package]
 name = "pm-copilot"
-version = "0.3.1"
+version = "0.4.0"
 description = "PM Copilot - Your AI PM Partner"
 authors = ["AIMatrix"]
 license = "Apache-2.0"

@@ -94,4 +94,3 @@ Agent 触发 Skill 时，先查此表定位应查询的 KB 场景，再按 Layer
 | pm-comp | 战略与架构 | 需求定义 |
 | pm-retro | 问题验证 | 数据驱动 |
 | pm-sync | 需求定义 | — |
-| pm-writer-* | 按内容主题匹配 | — |

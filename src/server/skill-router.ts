@@ -210,6 +210,30 @@ const ROUTING_RULES: RoutingRule[] = [
     patterns: ['gap分析', '偏差诊断', '战略偏差', '方向对不对', '战略对齐', 'gap analysis', '方向校准', '识别差距', '是不是偏了'],
     skills: ['pm-gap-analysis'],
   },
+
+  // Engineering Track (v3.4)
+  {
+    patterns: ['architect', 'system design', '目录结构', '组件拆分', '架构设计', '系统架构', 'component design'],
+    skills: ['pm-code-architect'],
+  },
+  {
+    patterns: ['implement', 'code', '写代码', '开发', '代码实现', 'code implement', '开发任务'],
+    skills: ['pm-code-implement'],
+  },
+  {
+    patterns: ['code review', '代码审查', '代码检查', 'review code', '代码评审'],
+    skills: ['pm-code-review'],
+  },
+
+  // Growth Track (v3.4)
+  {
+    patterns: ['seo', '搜索引擎', '关键词策略', 'sitemap', '结构化数据', 'meta tags'],
+    skills: ['pm-seo'],
+  },
+  {
+    patterns: ['blog', 'landing page', 'release note', '内容生成', 'social media', '通用内容'],
+    skills: ['pm-content-general'],
+  },
 ];
 
 // ─── Public API ───

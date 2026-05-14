@@ -19,7 +19,7 @@ PM Copilot is a **desktop AI product management tool**. It combines a classic PM
 
 **Core positioning**: A methodology-driven professional PM tool.
 
-**Current version**: Beta (v0.3.0)
+**Current version**: Beta (v0.4.0)
 
 > **Note**: PM Copilot requires users to bring their own AI API key (DeepSeek, Zhipu AI, SiliconFlow, Anthropic, etc.). The app does not include AI services. All data is stored locally.
 
@@ -68,6 +68,11 @@ PM Copilot's Skills are organized by PM lifecycle stages, covering the full work
 | | `pm-feature-cycle` | Feature full-cycle |
 | | `pm-writer-pipeline` | Content creation pipeline |
 | **Calibration** | `pm-gap-analysis` | Strategic gap diagnosis |
+| **Architecture** | `pm-code-architect` | System architecture & component design |
+| **Implementation** | `pm-code-implement` | Code writing & development |
+| **Code Review** | `pm-code-review` | Security/logic/performance review |
+| **SEO** | `pm-seo` | SEO audit & keyword strategy |
+| **Content** | `pm-content-general` | Blog/Landing Page/Release Notes |
 
 Each Skill embeds methodology references (scoring guides, output templates, quality checklists) — not just plain text prompts.
 
@@ -165,7 +170,7 @@ pm-copilot-agent/
 What we **have** and **have not** implemented — no overselling:
 
 **Implemented**:
-- 30 PM Skills covering 13 lifecycle stages (with references and output templates)
+- 35 PM Skills covering 13 lifecycle stages with 3 tracks (PM / Engineering / Growth)
 - Multi-agent collaboration (prompt-level, routed through pm-copilot)
 - Methodology knowledge base (distilled from classic PM books)
 - Skill Browser (full-screen skill explorer)

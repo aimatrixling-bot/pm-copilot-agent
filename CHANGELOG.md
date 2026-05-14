@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-05-14
+
+### Added
+
+- **Engineering Track (+3 Skills)**: `pm-code-architect`（系统架构设计）、`pm-code-implement`（代码实现）、`pm-code-review`（代码审查）
+- **Growth Track (+2 Skills)**: `pm-seo`（SEO 审计与策略）、`pm-content-general`（通用内容生成）
+- **三轨架构**: PM Track (15) / Engineering Track (6) / Growth Track (6) / Cross-cut (6) / Career (2) = 35 Skills
+- **Skill Metadata**: 每个 Skill 新增 `track`/`schema_type`/`depends_on`/`persist_to`/`guardrails` frontmatter
+- **skill-router.ts**: 28→33 条路由规则（新增 Engineering + Growth 路由）
+
+### Changed
+
+- Skill 总数 29→35，路由规则覆盖全部 Skill
+- `pm-tech-spec` 升级为 Engineering Track，新增 enforced schema 支持
+- bundled-agents CLAUDE.md Skill Registry 29→35
+- `ADMIN_AGENT_VERSION` bump: pm-20 → pm-21
+
+---
+
 ## [0.3.1] - 2026-05-07
 
 ### Added
