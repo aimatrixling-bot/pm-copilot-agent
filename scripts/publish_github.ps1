@@ -74,7 +74,7 @@ Write-Step "Verifying build artifacts..."
 $BundleDir = Join-Path $ProjectDir "src-tauri\target\release\bundle\nsis"
 
 # NSIS installer (may have spaces in name)
-$SetupExe = Get-ChildItem $BundleDir -Filter "*-setup.exe" | Select-Object -First 1
+$SetupExe = Get-ChildItem $BundleDir -Filter "*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $SetupExe) {
     Write-Err "No setup.exe found in $BundleDir"
     exit 1
@@ -82,7 +82,7 @@ if (-not $SetupExe) {
 Write-Ok "Setup: $($SetupExe.Name) ($([math]::Round($SetupExe.Length / 1MB, 1)) MB)"
 
 # NSIS zip for updater
-$NsisZip = Get-ChildItem $BundleDir -Filter "*.nsis.zip" | Select-Object -First 1
+$NsisZip = Get-ChildItem $BundleDir -Filter "*.nsis.zip" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $NsisZip) {
     Write-Err "No .nsis.zip found in $BundleDir"
     exit 1
@@ -90,7 +90,7 @@ if (-not $NsisZip) {
 Write-Ok "Update package: $($NsisZip.Name)"
 
 # Signature file
-$SigFile = Get-ChildItem $BundleDir -Filter "*.nsis.zip.sig" | Select-Object -First 1
+$SigFile = Get-ChildItem $BundleDir -Filter "*.nsis.zip.sig" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $SigFile) {
     Write-Err "No .nsis.zip.sig found. TAURI_SIGNING_PRIVATE_KEY may be invalid."
     exit 1
