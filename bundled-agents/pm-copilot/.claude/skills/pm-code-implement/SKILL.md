@@ -131,6 +131,7 @@ argument-hint: "[任务描述]"
 ```yaml
 track: engineering
 depends_on: [pm-code-architect]
+# schema_type & persist_to: v2 规划（当前运行时不读取，仅作为设计声明）
 schema_type: free
 persist_to: []
 guardrails:

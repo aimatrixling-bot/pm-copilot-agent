@@ -148,6 +148,7 @@ Generated: YYYY-MM-DD
 ```yaml
 track: growth
 depends_on: []
+# schema_type & persist_to: v2 规划（当前运行时不读取，仅作为设计声明）
 schema_type: free
 guardrails:
   - 不编造数据或引用，无来源标注"需验证"

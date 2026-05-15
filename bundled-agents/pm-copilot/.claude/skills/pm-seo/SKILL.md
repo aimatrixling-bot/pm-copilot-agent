@@ -133,6 +133,7 @@ argument-hint: "[网站 URL 或页面描述]"
 ```yaml
 track: growth
 depends_on: []
+# schema_type & persist_to: v2 规划（当前运行时不读取，仅作为设计声明）
 schema_type: hybrid
 guardrails:
   - 不编造搜索量数据，无来源标注"需验证"

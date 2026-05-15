@@ -121,12 +121,6 @@ const ROUTING_RULES: RoutingRule[] = [
     skills: ['pm-feature-cycle'],
   },
 
-  // Writer pipeline
-  {
-    patterns: ['批量文档', '文档集', 'writer pipeline', '文档管道', '文档全套', '完整文档包'],
-    skills: ['pm-writer-pipeline'],
-  },
-
   // Strategy session
   {
     patterns: ['策略讨论', 'strategy session', '快速决策', '方向讨论', '方向决策', '决策会议', '战略讨论'],
@@ -159,7 +153,7 @@ const ROUTING_RULES: RoutingRule[] = [
 
   // Tech spec
   {
-    patterns: ['技术规格', '技术方案', '技术文档', '架构设计', 'tech spec', 'technical design'],
+    patterns: ['技术规格', '技术方案', '技术文档', 'tech spec', 'technical design'],
     skills: ['pm-tech-spec'],
   },
 
