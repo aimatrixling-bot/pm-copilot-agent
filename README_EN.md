@@ -66,7 +66,6 @@ PM Copilot's Skills are organized by PM lifecycle stages, covering the full work
 | **Retrospective** | `pm-retro` | 4 retrospective methods |
 | **E2E Workflow** | `pm-discovery` | Product discovery (anti-rationalization) |
 | | `pm-feature-cycle` | Feature full-cycle |
-| | `pm-writer-pipeline` | Content creation pipeline |
 | **Calibration** | `pm-gap-analysis` | Strategic gap diagnosis |
 | **Architecture** | `pm-code-architect` | System architecture & component design |
 | **Implementation** | `pm-code-implement` | Code writing & development |
@@ -170,7 +169,7 @@ pm-copilot-agent/
 What we **have** and **have not** implemented — no overselling:
 
 **Implemented**:
-- 35 PM Skills covering 13 lifecycle stages with 3 tracks (PM / Engineering / Growth)
+- 34 PM Skills covering 13 lifecycle stages with 3 tracks (PM / Engineering / Growth)
 - Multi-agent collaboration (prompt-level, routed through pm-copilot)
 - Methodology knowledge base (distilled from classic PM books)
 - Skill Browser (full-screen skill explorer)

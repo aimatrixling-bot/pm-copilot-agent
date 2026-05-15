@@ -66,7 +66,6 @@ PM Copilot 的 Skills 按 PM 主循环的阶段组织，覆盖从问题定义到
 | **复盘回顾** | `pm-retro` | 4 种回顾方法 |
 | **端到端工作流** | `pm-discovery` | 产品发现（反合理化） |
 | | `pm-feature-cycle` | 功能全周期 |
-| | `pm-writer-pipeline` | 内容创作流水线 |
 | **战略校准** | `pm-gap-analysis` | 战略偏差五维诊断 |
 | **架构设计** | `pm-code-architect` | 系统架构与组件拆分 |
 | **代码实现** | `pm-code-implement` | 代码编写与开发 |
@@ -170,7 +169,7 @@ pm-copilot-agent/
 
 **已实现**：
 - PM Skills 覆盖 13 个阶段（带 references 和输出模板）
-- 多 Agent 协作（单 Agent Skill 路由 + 35 个 PM Skill（三轨：PM / Engineering / Growth），多 Agent 为 v2 规划）
+- 多 Agent 协作（单 Agent Skill 路由 + 34 个 PM Skill（三轨：PM / Engineering / Growth），多 Agent 为 v2 规划）
 - 方法论知识库（经典 PM 著作提炼）
 - Skill Browser 全屏技能浏览器
 - Setup Wizard 首次配置引导

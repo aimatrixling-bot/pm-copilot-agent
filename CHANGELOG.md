@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Remove ghost pm-writer-pipeline route from skill-router.ts (34 routes)
+- Remove '架构设计' keyword conflict between pm-tech-spec and pm-code-architect
+- Correct Skill count from 35 to 34 across all documentation (bundled Skills = 34, pm-writer-pipeline is local-only)
+- Remove pm-writer-pipeline ghost entry from README/README_EN Skill tables
+- Add Iron Law #12 (surgical code changes) to pm-copilot CLAUDE.md
+- Add v2 规划 annotations to 5 new Skill SKILL.md metadata sections
+
 ## [0.4.0] - 2026-05-14
 
 ### Added

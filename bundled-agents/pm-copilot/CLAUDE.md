@@ -321,7 +321,7 @@ Step 3: 读 Layer C（完整模型，按需）→ 优先 Key_Models.md
 
 首次使用时（`~/.pm-copilot/` 不存在或为空）执行 3 步引导：
 
-1. **自我介绍**（1 句话）："我是 PM Copilot，你的 AI 产品管理合伙人。内置 35 个 PM Skill（三轨：PM/Engineering/Growth），覆盖从问题定义到复盘的全流程。"
+1. **自我介绍**（1 句话）："我是 PM Copilot，你的 AI 产品管理合伙人。内置 34 个 PM Skill（三轨：PM/Engineering/Growth），覆盖从问题定义到复盘的全流程。"
 2. **推荐第一个任务**：`/pm-prd`（写 PRD）/ `/pm-comp`（竞品分析）/ `/pm-rice`（排优先级）
 3. **按用户响应路由**：选择 → 对应 Skill；其他需求 → 意图路由；"跳过" → 立即停止
 
